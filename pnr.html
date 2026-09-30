@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNR Time Limit & Online Check-In Reminder - Shathy Group</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.45), rgba(30, 58, 138, 0.4)), 
+                        url('https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover; margin: 0; padding: 20px; color: #333; min-height: 100vh;
+        }
+        .container { 
+            max-width: 1250px; margin: 0 auto; background: rgba(255, 255, 255, 0.96); 
+            backdrop-filter: blur(12px); padding: 25px; border-radius: 14px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e0; padding-bottom: 12px; margin-bottom: 20px; }
+        h2.app-title { margin: 0; color: #1e3a8a; font-size: 22px; }
+        .btn-back { background-color: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-back:hover { background-color: #1d4ed8; }
+        .btn-logout { background-color: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-logout:hover { background-color: #b91c1c; }
+
+        .section-title { font-size: 15px; font-weight: bold; color: #1e40af; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #cbd5e0; padding-bottom: 4px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; font-size: 12px; margin-bottom: 4px; color: #4a5568; }
+        .form-group input, .form-group select { padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 12px; background: #fff; }
+
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .btn-primary { background-color: #d97706; color: white; }
+        .btn-primary:hover { background-color: #b45309; }
+        .btn-test { background-color: #0284c7; color: white; margin-top: 5px; padding: 4px 8px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; width: fit-content; }
+        .btn-test:hover { background-color: #0369a1; }
+
+        .table-box { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        .table-box th, .table-box td { border: 1px solid #cbd5e0; padding: 8px 10px; text-align: left; }
+        .table-box th { background-color: #f1f5f9; color: #1e293b; }
+
+        #alertBanner { display: none; background: #fee2e2; border: 2px solid #dc2626; color: #b91c1c; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-flex">
+        <h2 class="app-title">✈️ PNR Time Limit & Online Check-In Reminder</h2>
+        <div id="headerActionBtn"></div>
+    </div>
+
+    <div id="alertBanner">🚨 URGENT: Pending PNR Time Limit or Flight Check-In requires your action!</div>
+
+    <div class="form-container">
+        <div class="section-title">Add New Tracking Item</div>
+        <div class="form-grid">
+            <div class="form-group"><label>Tracker Type:</label>
+                <select id="trackerType" onchange="toggleFormFields()">
+                    <option value="HOLD">On-Hold PNR (Time Limit)</option>
+                    <option value="CHECKIN">Online Check-In Reminder</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Passenger Name:</label><input type="text" id="paxName" placeholder="Passenger Name"></div>
+            <div class="form-group"><label>PNR Number:</label><input type="text" id="pnrNo" placeholder="PNR Code"></div>
+            <div class="form-group"><label>Passport No & Expiry:</label><input type="text" id="passportInfo" placeholder="A1234567 / 2028-10-12"></div>
+            <div class="form-group"><label>Contact / Phone:</label><input type="text" id="contactNo" placeholder="+968 XXXXXXXX"></div>
+            
+            <!-- On-Hold Fields -->
+            <div class="form-group" id="timeLimitGroup">
+                <label>PNR Time Limit (Expiry):</label><input type="datetime-local" id="timeLimit">
+            </div>
+            <div class="form-group" id="reminderHoursGroup">
+                <label>Alert Before (Hours):</label>
+                <input type="number" id="alertBeforeHours" value="2" min="1" max="72" placeholder="e.g. 2, 3, 4">
+            </div>
+            <div class="form-group" id="holdIntervalGroup">
+                <label>Repeat Interval (Minutes):</label>
+                <input type="number" id="holdIntervalMins" value="2" min="1" max="60" placeholder="e.g. 2">
+            </div>
+            <div class="form-group" id="holdSoundGroup">
+                <label>On-Hold Alert Sound & Voice:</label>
+                <select id="holdSoundType">
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3|Please confirm your on-hold ticket">Digital Beep + "Please confirm your on-hold ticket"</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/1002/1002-preview.mp3|Please confirm or cancel your ticket immediately">Urgent Alert + "Please confirm or cancel your ticket"</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3|Attention! PNR time limit is ending soon">Classic Bell + "Attention! PNR time limit is ending soon"</option>
+                </select>
+                <button type="button" class="btn-test" onclick="testSound('holdSoundType')">🔊 Test Sound & Voice</button>
+            </div>
+
+            <!-- Check-In Fields -->
+            <div class="form-group" id="depTimeGroup" style="display:none;">
+                <label>Flight Departure Time:</label><input type="datetime-local" id="depTime">
+            </div>
+            <div class="form-group" id="checkinAlertHoursGroup" style="display:none;">
+                <label>Alert Before (Hours):</label>
+                <input type="number" id="checkinAlertBeforeHours" value="24" min="1" max="72" placeholder="e.g. 24">
+            </div>
+            <div class="form-group" id="checkinIntervalGroup" style="display:none;">
+                <label>Repeat Interval (Minutes):</label>
+                <input type="number" id="checkinIntervalMins" value="2" min="1" max="60" placeholder="e.g. 2">
+            </div>
+            <div class="form-group" id="checkinSoundGroup" style="display:none;">
+                <label>Check-In Alert Sound & Voice:</label>
+                <select id="checkinSoundType">
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2867/2867-preview.mp3|Please make your online check in">Soft Chime + "Please make your online check in"</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2293/2293-preview.mp3|Reminder! Complete your flight check in now">Friendly Ping + "Reminder! Complete your flight check in"</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3|Attention! Online check in window is open">Radar Beep + "Attention! Online check in window is open"</option>
+                </select>
+                <button type="button" class="btn-test" onclick="testSound('checkinSoundType')">🔊 Test Sound & Voice</button>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" id="saveTrackerBtn">Save & Start Tracking</button>
+        </div>
+    </div>
+
+    <!-- Table 1 -->
+    <div class="section-title" style="color: #b45309;">📋 On-Hold PNR (Time Limit Tracking)</div>
+    <div style="overflow-x: auto; margin-bottom: 25px;">
+        <table class="table-box">
+            <thead>
+                <tr>
+                    <th>Passenger Name</th><th>PNR</th><th>Passport & Phone</th><th>Time Limit</th><th>Status / Alert</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="holdTableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Table 2 -->
+    <div class="section-title" style="color: #1e3a8a;">📋 Online Check-In Reminder Tracking</div>
+    <div style="overflow-x: auto;">
+        <table class="table-box">
+            <thead>
+                <tr>
+                    <th>Passenger Name</th><th>PNR</th><th>Passport & Phone</th><th>Flight Departure</th><th>Status / Alert</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="checkinTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
+    const actionBtnContainer = document.getElementById('headerActionBtn');
+    
+    if (isAdmin) {
+        actionBtnContainer.innerHTML = '<a href="admin.html" class="btn-back">🔙 Back to Admin</a>';
+    } else {
+        actionBtnContainer.innerHTML = '<button class="btn-logout" id="dynamicLogoutBtn">🚪 Logout</button>';
+        document.getElementById('dynamicLogoutBtn').onclick = () => {
+            if (confirm("Are you sure you want to logout?")) window.location.href = 'login.html';
+        };
+    }
+
+    let trackers = JSON.parse(localStorage.getItem('SHATHY_ADVANCED_PNR')) || [];
+
+    function playAudioAlert(dataString, dynamicPax) {
+        try {
+            if (!dataString) return;
+            const parts = dataString.split('|');
+            const audioUrl = parts[0];
+            let voiceText = parts[1] || "";
+
+            if (dynamicPax) {
+                voiceText = voiceText + " for passenger " + dynamicPax;
+            }
+
+            if (audioUrl) {
+                const audio = new Audio(audioUrl);
+                audio.play().catch(err => console.log("Audio play blocked:", err));
+            }
+
+            if ('speechSynthesis' in window && voiceText) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(voiceText);
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        } catch(e) { console.log(e); }
+    }
+
+    function testSound(selectId) {
+        const val = document.getElementById(selectId).value;
+        playAudioAlert(val, "Test Passenger");
+    }
+
+    function toggleFormFields() {
+        const type = document.getElementById('trackerType').value;
+        if(type === 'HOLD') {
+            document.getElementById('timeLimitGroup').style.display = 'flex';
+            document.getElementById('reminderHoursGroup').style.display = 'flex';
+            document.getElementById('holdIntervalGroup').style.display = 'flex';
+            document.getElementById('holdSoundGroup').style.display = 'flex';
+            
+            document.getElementById('depTimeGroup').style.display = 'none';
+            document.getElementById('checkinAlertHoursGroup').style.display = 'none';
+            document.getElementById('checkinIntervalGroup').style.display = 'none';
+            document.getElementById('checkinSoundGroup').style.display = 'none';
+        } else {
+            document.getElementById('timeLimitGroup').style.display = 'none';
+            document.getElementById('reminderHoursGroup').style.display = 'none';
+            document.getElementById('holdIntervalGroup').style.display = 'none';
+            document.getElementById('holdSoundGroup').style.display = 'none';
+            
+            document.getElementById('depTimeGroup').style.display = 'flex';
+            document.getElementById('checkinAlertHoursGroup').style.display = 'flex';
+            document.getElementById('checkinIntervalGroup').style.display = 'flex';
+            document.getElementById('checkinSoundGroup').style.display = 'flex';
+        }
+    }
+
+    document.getElementById('saveTrackerBtn').onclick = () => {
+        const type = document.getElementById('trackerType').value;
+        const paxName = document.getElementById('paxName').value.trim();
+        const pnrNo = document.getElementById('pnrNo').value.trim();
+        const passportInfo = document.getElementById('passportInfo').value.trim();
+        const contactNo = document.getElementById('contactNo').value.trim();
+        
+        if(!paxName || !pnrNo) {
+            alert('Please enter Passenger Name and PNR Number!');
+            return;
+        }
+
+        let newItem = {
+            id: Date.now(),
+            type,
+            paxName,
+            pnrNo,
+            passportInfo: passportInfo || 'N/A',
+            contactNo: contactNo || 'N/A',
+            status: 'Pending',
+            lastAlertTime: 0
+        };
+
+        if(type === 'HOLD') {
+            const timeLimit = document.getElementById('timeLimit').value;
+            const alertHours = parseInt(document.getElementById('alertBeforeHours').value) || 2;
+            const intervalMins = parseInt(document.getElementById('holdIntervalMins').value) || 2;
+            const soundConfig = document.getElementById('holdSoundType').value;
+            if(!timeLimit) { alert('Please set PNR Time Limit!'); return; }
+            newItem.timeLimit = timeLimit;
+            newItem.alertHours = alertHours;
+            newItem.intervalMins = intervalMins;
+            newItem.soundConfig = soundConfig;
+        } else {
+            const depTime = document.getElementById('depTime').value;
+            const alertHours = parseInt(document.getElementById('checkinAlertBeforeHours').value) || 24;
+            const checkinIntervalMins = parseInt(document.getElementById('checkinIntervalMins').value) || 2;
+            const soundConfig = document.getElementById('checkinSoundType').value;
+            if(!depTime) { alert('Please set Flight Departure Time!'); return; }
+            newItem.depTime = depTime;
+            newItem.alertHours = alertHours;
+            newItem.checkinIntervalMins = checkinIntervalMins;
+            newItem.soundConfig = soundConfig;
+        }
+
+        trackers.push(newItem);
+        localStorage.setItem('SHATHY_ADVANCED_PNR', JSON.stringify(trackers));
+
+        document.getElementById('paxName').value = '';
+        document.getElementById('pnrNo').value = '';
+        document.getElementById('passportInfo').value = '';
+        document.getElementById('contactNo').value = '';
+
+        renderTrackers();
+        alert('Tracker saved successfully!');
+    };
+
+    function renderTrackers() {
+        const holdBody = document.getElementById('holdTableBody');
+        const checkinBody = document.getElementById('checkinTableBody');
+        holdBody.innerHTML = '';
+        checkinBody.innerHTML = '';
+        
+        let hasUrgentAlert = false;
+        let activeAlertConfig = null;
+        let activePaxName = '';
+        const now = new Date().getTime();
+
+        trackers.forEach(item => {
+            let statusHTML = '';
+            let isTriggered = false;
+
+            if (item.status === 'Pending') {
+                if (item.type === 'HOLD') {
+                    const limitTime = new Date(item.timeLimit).getTime();
+                    const diffHours = (limitTime - now) / (1000 * 60 * 60);
+
+                    if (diffHours <= item.alertHours && diffHours > 0) {
+                        statusHTML = `<span style="color:#dc2626; font-weight:bold;">⚠️ Expires in ${diffHours.toFixed(1)} hrs!<br><em>Action Required</em></span>`;
+                        isTriggered = true;
+                        
+                        const intervalMs = (item.intervalMins || 2) * 60 * 1000;
+                        if (now - (item.lastAlertTime || 0) >= intervalMs) {
+                            activeAlertConfig = item.soundConfig;
+                            activePaxName = item.paxName;
+                            item.lastAlertTime = now;
+                        }
+                    } else if (diffHours <= 0) {
+                        statusHTML = `<span style="color:#dc2626; font-weight:bold;">❌ TIME LIMIT EXPIRED!<br><em>Action Required</em></span>`;
+                        isTriggered = true;
+                        
+                        const intervalMs = (item.intervalMins || 2) * 60 * 1000;
+                        if (now - (item.lastAlertTime || 0) >= intervalMs) {
+                            activeAlertConfig = item.soundConfig;
+                            activePaxName = item.paxName;
+                            item.lastAlertTime = now;
+                        }
+                    } else {
+                        statusHTML = `<span style="color:#16a34a; font-weight:bold;">On Hold (Active)</span>`;
+                    }
+                } else if (item.type === 'CHECKIN') {
+                    const flightTime = new Date(item.depTime).getTime();
+                    const diffHours = (flightTime - now) / (1000 * 60 * 60);
+
+                    if (diffHours <= item.alertHours && diffHours > 0) {
+                        statusHTML = `<span style="color:#d97706; font-weight:bold;">🔔 Check-In Window Open (${diffHours.toFixed(1)}h left)!<br><em>Action Required</em></span>`;
+                        isTriggered = true;
+
+                        const intervalMs = (item.checkinIntervalMins || 2) * 60 * 1000;
+                        if (now - (item.lastAlertTime || 0) >= intervalMs) {
+                            activeAlertConfig = item.soundConfig;
+                            activePaxName = item.paxName;
+                            item.lastAlertTime = now;
+                        }
+                    } else if (diffHours <= 0) {
+                        statusHTML = `<span style="color:#64748b; font-weight:bold;">Flight Time Passed</span>`;
+                    } else {
+                        statusHTML = `<span style="color:#16a34a; font-weight:bold;">Tracking Departure</span>`;
+                    }
+                }
+            } else if (item.status === 'Confirmed') {
+                statusHTML = `<span style="color:#2563eb; font-weight:bold;">✅ Ticket Confirmed</span>`;
+            } else if (item.status === 'Cancelled') {
+                statusHTML = `<span style="color:#dc2626; font-weight:bold;">❌ Ticket Cancelled</span>`;
+            } else if (item.status === 'Done') {
+                statusHTML = `<span style="color:#2563eb; font-weight:bold;">✅ Check-In Done</span>`;
+            } else if (item.status === 'Denied') {
+                statusHTML = `<span style="color:#dc2626; font-weight:bold;">❌ Denied / Closed</span>`;
+            }
+
+            if (isTriggered && item.status === 'Pending') hasUrgentAlert = true;
+
+            const row = document.createElement('tr');
+            if (item.type === 'HOLD') {
+                row.innerHTML = `
+                    <td><strong>${item.paxName}</strong></td>
+                    <td><code>${item.pnrNo}</code></td>
+                    <td>Passport: ${item.passportInfo}<br><small>Ph: ${item.contactNo}</small></td>
+                    <td>${item.timeLimit ? item.timeLimit.replace('T', ' ') : ''}</td>
+                    <td>${statusHTML}</td>
+                    <td>
+                        ${item.status === 'Pending' ? `
+                            <button onclick="updateStatus(${item.id}, 'Confirmed')" style="background:#16a34a; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; margin-right:3px;">Confirm</button>
+                            <button onclick="updateStatus(${item.id}, 'Cancelled')" style="background:#dc2626; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; margin-right:3px;">Cancel</button>
+                        ` : ''}
+                        <button onclick="deleteTracker(${item.id})" style="background:#64748b; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Delete</button>
+                    </td>
+                `;
+                holdBody.appendChild(row);
+            } else {
+                row.innerHTML = `
+                    <td><strong>${item.paxName}</strong></td>
+                    <td><code>${item.pnrNo}</code></td>
+                    <td>Passport: ${item.passportInfo}<br><small>Ph: ${item.contactNo}</small></td>
+                    <td>${item.depTime ? item.depTime.replace('T', ' ') : ''}</td>
+                    <td>${statusHTML}</td>
+                    <td>
+                        ${item.status === 'Pending' ? `
+                            <button onclick="updateStatus(${item.id}, 'Done')" style="background:#16a34a; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; margin-right:3px;">Done</button>
+                            <button onclick="updateStatus(${item.id}, 'Denied')" style="background:#dc2626; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; margin-right:3px;">Deny</button>
+                        ` : ''}
+                        <button onclick="deleteTracker(${item.id})" style="background:#64748b; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Delete</button>
+                    </td>
+                `;
+                checkinBody.appendChild(row);
+            }
+        });
+
+        localStorage.setItem('SHATHY_ADVANCED_PNR', JSON.stringify(trackers));
+        document.getElementById('alertBanner').style.display = hasUrgentAlert ? 'block' : 'none';
+        
+        if (hasUrgentAlert && activeAlertConfig) {
+            playAudioAlert(activeAlertConfig, activePaxName);
+        }
+    }
+
+    function updateStatus(id, newStatus) {
+        trackers = trackers.map(t => {
+            if (t.id === id) t.status = newStatus;
+            return t;
+        });
+        localStorage.setItem('SHATHY_ADVANCED_PNR', JSON.stringify(trackers));
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        renderTrackers();
+    }
+
+    function deleteTracker(id) {
+        if(confirm('Are you sure you want to delete this record?')) {
+            trackers = trackers.filter(t => t.id !== id);
+            localStorage.setItem('SHATHY_ADVANCED_PNR', JSON.stringify(trackers));
+            renderTrackers();
+        }
+    }
+
+    setInterval(renderTrackers, 10000);
+    window.onload = renderTrackers;
+</script>
+</body>
+</html>

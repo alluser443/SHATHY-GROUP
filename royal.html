@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice Generator - Royal Holidays</title>
+    <style>
+        * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+        body { 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.5), rgba(30, 58, 138, 0.45)), 
+                        url('https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover; margin: 0; padding: 20px; color: #2d3748; min-height: 100vh;
+        }
+        .container { 
+            max-width: 950px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(12px); padding: 25px; border-radius: 14px; 
+            box-shadow: 0 10px 35px rgba(0,0,0,0.25); border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px; }
+        h2.app-title { margin: 0; color: #1a365d; font-size: 22px; }
+        .btn-logout { background-color: #dc2626; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; }
+        .btn-logout:hover { background-color: #b91c1c; }
+        .btn-back { background-color: #475569; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-back:hover { background-color: #334155; }
+
+        .section-title { font-size: 15px; font-weight: bold; color: #1e40af; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #cbd5e0; padding-bottom: 4px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #4a5568; }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: #fff; }
+        .form-group input[readonly] { background-color: #e2e8f0; color: #64748b; cursor: not-allowed; }
+        
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+        .checkbox-group input { width: 18px; height: 18px; cursor: pointer; }
+        .checkbox-group label { font-weight: bold; font-size: 14px; color: #dc2626; cursor: pointer; margin-bottom: 0; }
+
+        .folder-bar { background: #f8fafc; border: 1px solid #cbd5e0; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+        .btn-primary { background-color: #16a34a; color: white; }
+        .btn-secondary { background-color: #0284c7; color: white; }
+        .btn-warning { background-color: #d97706; color: white; }
+        .btn-dark { background-color: #334155; color: white; }
+        .btn-danger { background-color: #dc2626; color: white; }
+        
+        #invoice-preview-area { border: 1px solid #cbd5e0; padding: 25px; background: white; border-radius: 8px; margin-top: 20px; }
+        .invoice-card { width: 100%; max-width: 850px; margin: 0 auto; border: 2px solid #1e3a8a; padding: 25px; box-sizing: border-box; background: #fff; border-radius: 4px; position: relative; }
+        
+        .non-refundable-stamp {
+            position: absolute; top: 67%; left: 32%; transform: translate(-50%, -50%) rotate(-8deg);
+            border: 3px solid #dc2626; color: #dc2626; padding: 6px 15px; font-size: 16px; font-weight: 900;
+            text-align: center; letter-spacing: 1px; text-transform: uppercase; pointer-events: none; opacity: 0.95; z-index: 10; display: none; background-color: transparent;
+        }
+        .non-refundable-stamp .ar-stamp { font-size: 13px; display: block; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; margin-top: 1px; }
+
+        .inv-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e3a8a; padding-bottom: 15px; margin-bottom: 15px; }
+        .logo-box { display: flex; flex-direction: column; }
+        .logo-main { font-family: 'Georgia', serif; font-size: 38px; font-weight: bold; color: #1d4ed8; line-height: 1.1; font-style: italic; }
+        .logo-sub { background-color: #1e3a8a; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; letter-spacing: 1px; text-transform: uppercase; margin-top: 6px; display: inline-block; border-radius: 2px; }
+        .header-center-details { text-align: center; font-size: 11px; color: #1e293b; line-height: 1.5; }
+        .header-arabic-title { font-size: 22px; font-weight: bold; color: #1d4ed8; margin-bottom: 2px; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; }
+        .voucher-badge { background-color: #1e3a8a; color: white; padding: 6px 15px; border-radius: 4px; display: inline-block; text-align: center; }
+        .voucher-badge .ar { font-size: 14px; font-weight: bold; display: block; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; }
+        .voucher-badge .en { font-size: 10px; letter-spacing: 0.5px; }
+        .inv-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 13px; }
+        .rcp-no { color: #dc2626; font-size: 18px; font-weight: bold; }
+        .details-table, .pricing-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .details-table td { padding: 8px 12px; background: #f8fafc; border: 1px solid #cbd5e0; font-size: 13px; }
+        .details-table td.label { font-weight: bold; color: #1e293b; width: 25%; background: #edf2f7; font-size: 12px; }
+        .pricing-table th, .pricing-table td { padding: 10px 14px; border: 1px solid #cbd5e0; font-size: 13px; }
+        .pricing-table th { background: #e2e8f0; text-align: left; color: #1e293b; }
+        .pricing-table .amount-col { text-align: right; width: 30%; }
+        .footer-notes { margin-top: 25px; text-align: center; font-size: 11px; color: #475569; border-top: 1px dashed #cbd5e0; padding-top: 15px; }
+        .footer-notes p { margin: 4px 0; }
+        .stamp-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; font-size: 12px; font-weight: bold; color: #334155; padding: 0 20px; }
+        .stamp-signature-wrapper { position: relative; width: 180px; height: 90px; border-bottom: 1px dashed #94a3b8; display: flex; justify-content: center; align-items: center; }
+        .preview-img { max-width: 100%; max-height: 90px; object-fit: contain; position: absolute; }
+        .stamp-img { opacity: 0.85; z-index: 1; }
+        .sig-img { z-index: 2; }
+        
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        .history-table th, .history-table td { border: 1px solid #cbd5e0; padding: 10px; text-align: left; }
+        .history-table th { background-color: #f1f5f9; color: #1e3a8a; }
+        
+        #customPasswordModal, #invoiceViewModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; overflow-y: auto; padding: 20px; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 350px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; }
+        .modal-content h3 { margin-top: 0; color: #1e3a8a; font-size: 18px; }
+        .modal-content input { width: 100%; padding: 10px; margin: 12px 0; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; }
+        .modal-btns { display: flex; justify-content: space-between; gap: 10px; }
+        .modal-btns button { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        .view-modal-body { background: white; padding: 20px; border-radius: 8px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }
+        .search-box-container { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
+        .search-box-container input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 13px; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .no-print, .form-container, .folder-bar, .btn-group, #history-section, .header-flex { display: none !important; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; background: white; border: none; }
+            #invoice-preview-area { border: none; padding: 0; margin: 0; }
+            .invoice-card { border: 2px solid #1e3a8a; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-flex no-print">
+        <h2 class="app-title">Royal Holidays - Tax Invoice System</h2>
+        <div id="headerActionBtn"></div>
+    </div>
+    
+    <div class="form-container no-print">
+        <div class="section-title">1. Invoice Details & Passenger Info</div>
+        <div class="folder-bar">
+            <div><strong>Cloud Status:</strong> <span style="color: #16a34a; font-weight: bold;">Connected & Active (Firebase)</span></div>
+            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncInvoicesFromCloud()">Sync from Cloud</button>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group"><label>Pax Name:</label><input type="text" id="paxName" placeholder="Enter Passenger Name"></div>
+            <div class="form-group"><label>PNR No:</label><input type="text" id="pnrNo" placeholder="Enter PNR Number"></div>
+            <div class="form-group"><label>Contact No:</label><input type="text" id="contactNo" placeholder="+968 XXXXXXXX"></div>
+            <div class="form-group"><label>Email Address:</label><input type="email" id="email" placeholder="customer@gmail.com"></div>
+            <div class="form-group"><label>Ticket Cost (OMR):</label><input type="number" step="0.001" id="ticketCost" placeholder="0.000"></div>
+            <div class="form-group"><label>VAT Rate (%):</label><input type="number" step="0.01" id="vatRate" value="0.00"></div>
+            <div class="form-group"><label>Payment Method:</label>
+                <select id="paymentMethod">
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Card Payment">Card Payment</option>
+                    <option value="Due Payment">Due Payment</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Remarks / Route:</label><input type="text" id="remarks" placeholder="FLIGHT TICKET ROUTE"></div>
+            <div class="form-group">
+                <label>Issued By:</label>
+                <input type="text" id="issuedBy" readonly style="font-weight: bold; color: #1e3a8a;">
+            </div>
+            <div class="form-group">
+                <label style="display: flex; justify-content: space-between; align-items: center;">
+                    Receipt No (Locked):
+                    <button type="button" id="unlockBtn" class="btn btn-warning" style="padding: 2px 8px; font-size: 11px;">Unlock</button>
+                </label>
+                <input type="number" id="receiptCounter" readonly>
+            </div>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="nonRefundableCheck">
+            <label for="nonRefundableCheck">Mark as Non-Refundable</label>
+        </div>
+
+        <div class="section-title" style="margin-top: 20px;">2. Stamp & Signature Upload</div>
+        <div class="form-grid">
+            <div class="form-group"><label>Upload Stamp:</label><input type="file" id="stampInput" accept="image/*" onchange="previewImage(this, 'dispStamp')"></div>
+            <div class="form-group"><label>Upload Signature:</label><input type="file" id="sigInput" accept="image/*" onchange="previewImage(this, 'dispSig')"></div>
+        </div>
+
+        <div class="btn-group" style="margin-top: 20px;">
+            <button class="btn btn-primary" id="updateSaveBtn">Update & Save Store</button>
+            <button class="btn btn-secondary" id="printBtn">Print Customer Copy</button>
+            <button class="btn btn-warning" id="resetBtn">Reset Voucher</button>
+            <button class="btn btn-dark" id="toggleHistBtn">View History (<span id="histCount">0</span>)</button>
+        </div>
+    </div>
+
+    <div id="customPasswordModal">
+        <div class="modal-content">
+            <h3>Admin Password Required</h3>
+            <p style="font-size: 13px; color: #4a5568;">Enter Admin Password to unlock Receipt No:</p>
+            <input type="password" id="modalPasswordInput" placeholder="Enter password...">
+            <div class="modal-btns">
+                <button id="modalCancelBtn" style="background: #cbd5e0; color: #334155;">Cancel</button>
+                <button id="modalSubmitBtn" style="background: #16a34a; color: white;">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="invoiceViewModal">
+        <div class="view-modal-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;" class="no-print">
+                <h3 style="margin: 0; color: #1e3a8a;">Saved Invoice Visual Preview</h3>
+                <button class="btn btn-danger" onclick="closeViewModal()" style="padding: 5px 10px; font-size: 12px;">Close Preview</button>
+            </div>
+            <div id="modalInvoiceContentContainer"></div>
+        </div>
+    </div>
+
+    <div id="history-section" class="no-print" style="display: none; margin-bottom: 25px; background: #f8fafc; padding: 15px; border: 1px solid #cbd5e0; border-radius: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin:0; color:#1e3a8a;">Saved Invoice History</h3>
+        </div>
+        
+        <div class="search-box-container">
+            <input type="text" id="historySearchInput" placeholder="Search by Receipt No or Passenger Name..." onkeyup="filterHistoryTable()">
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Receipt #</th>
+                        <th>Date</th>
+                        <th>Pax Name</th>
+                        <th>PNR</th>
+                        <th>Amount (OMR)</th>
+                        <th>Issued By</th>
+                        <th>Action / View</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="invoice-preview-area">
+        <div class="invoice-card" id="mainInvoiceCard">
+            <div id="nonRefundableStamp" class="non-refundable-stamp">NON-REFUNDABLE<span class="ar-stamp">غير قابل للاسترداد</span></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <div style="font-size: 11px; color: #64748b; font-weight: bold;">Customer Copy / نسخة العميل</div>
+            </div>
+            
+            <div class="inv-header">
+                <div class="logo-box">
+                    <div class="logo-main">Royal</div>
+                    <div style="font-size: 15px; color: #1d4ed8; font-style: italic; font-weight: bold; margin-top: 2px;">holidays</div>
+                    <div class="logo-sub">TRAVELS & TOURS SERVICES</div>
+                </div>
+                <div class="header-center-details">
+                    <div class="header-arabic-title">عطلات الفخامة</div>
+                    <div style="font-weight: bold; color: #1e3a8a; font-size: 12px;">للسفر والسياحة والخدمات</div>
+                    <div style="margin-top: 3px; font-size: 10px;">ش.ت : ۱۰۱۳۷۳۰ ، نقال : ٩٦۸ ٩٣٦۸٦٦۳۱+ ، هاتف : ٩٦۸ ۲۳۲۸۸۷۳۸+ ، شارع السلام صلالة - ۲۱۱ ، سلطنة عمان</div>
+                    <div style="font-weight: 500; margin-top: 2px; font-size: 10px;">C.R. 1013730 GSM: +968 93686631 Tel: +968 23288738, Al Salam Street, Salalah - 211, S. of Oman</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="voucher-badge">
+                        <span class="ar">سند قبض / فاتورة</span>
+                        <span class="en">Receipt Voucher / Tax Invoice</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inv-meta-row">
+                <div><strong>Receipt / No / رقم الإيصال:</strong> <span class="rcp-no" id="dispReceiptNo">RCP/RH/0216</span></div>
+                <div><strong>Date / التاريخ:</strong> <span id="dispDate">--</span></div>
+            </div>
+
+            <table class="details-table">
+                <tr>
+                    <td class="label">Pax Name / المسافر:</td><td id="dispPaxName">--</td>
+                    <td class="label">PNR No. / برقم الحجز:</td><td id="dispPnrNo">--</td>
+                </tr>
+                <tr>
+                    <td class="label">Contact / No / الهاتف:</td><td id="dispContactNo">--</td>
+                    <td class="label">Email / البريد:</td><td id="dispEmail">--</td>
+                </tr>
+                <tr>
+                    <td class="label">Remarks / التفاصيل:</td><td colspan="3" id="dispRemarks">--</td>
+                </tr>
+            </table>
+
+            <table class="pricing-table">
+                <thead><tr><th>Description / البيان</th><th class="amount-col">Amount (OMR) / المبلغ</th></tr></thead>
+                <tbody>
+                    <tr><td>Air Ticket Booking Charges / رسوم تذكرة الطيران</td><td class="amount-col" id="dispTicketCost">0.000</td></tr>
+                    <tr><td>VAT at <span id="dispVatRate">0.00</span>% / ضريبة القيمة المضافة</td><td class="amount-col" id="dispVatAmount">0.000</td></tr>
+                    <tr>
+                        <td><strong>Collection Mode / طريقة الدفع:</strong><br><span id="dispPaymentMethodText" style="font-size: 12px; color: #1e40af;">Bank Transfer: 0.000 OMR</span></td>
+                        <td class="amount-col" style="vertical-align: middle;"><strong>Grand Total / المبلغ الإجمالي:</strong><br><span id="dispGrandTotal" style="font-size: 15px; color: #1e3a8a;">0.000 OMR</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="footer-notes">
+                <p>This receipt is not valid without company stamp / لا يعتبر هذا الإيصال سارياً بدون ختم الشركة</p>
+                <p>Service charge is non-refundable / رسوم الخدمة غير قابلة للإرجاع</p>
+            </div>
+
+            <div class="stamp-line">
+                <div>
+                    <div style="margin-bottom: 3px;">Company Stamp / ختم الشركة</div>
+                    <div class="stamp-signature-wrapper"><img id="dispStamp" class="preview-img stamp-img" src="" style="display:none;" alt="Stamp"></div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="margin-bottom: 3px; font-size: 11px; color: #64748b;">Issued By: <span id="dispIssuedBy">--</span> | Royal Holidays, Salalah, Oman</div>
+                    <div style="font-size: 11px; color: #475569; margin-bottom: 3px;">Receiver's Sign / توقيع المستلم</div>
+                    <div class="stamp-signature-wrapper"><img id="dispSig" class="preview-img sig-img" src="" style="display:none;" alt="Signature"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAE9rSoeTwCUgfrJ2QOlibuBClF2_M0hkw",
+        authDomain: "royal-holidays.firebaseapp.com",
+        databaseURL: "https://royal-holidays-default-rtdb.firebaseio.com",
+        projectId: "royal-holidays",
+        storageBucket: "royal-holidays.appspot.com",
+        messagingSenderId: "470071653456",
+        appId: "1:470071653456:web:b10ca6a1e8c8dc9ac50d55",
+        measurementId: "G-VZCFTN70GJ"
+    };
+
+    try {
+        const firebaseApp = initializeApp(firebaseConfig);
+        const db = getFirestore(firebaseApp);
+        window.firebaseDB = { db, collection, addDoc, getDocs };
+    } catch(e) {
+        console.log("Firebase init notice:", e);
+    }
+</script>
+
+<script>
+    let ADMIN_PASS = localStorage.getItem('ROYAL_RECEIPT_PIN') || '0473';
+
+    let loggedInUser = localStorage.getItem('LOGGED_IN_STAFF_NAME') || localStorage.getItem('currentUser') || 'NUR AHAMMED';
+    let userRole = localStorage.getItem('USER_ROLE') || localStorage.getItem('role') || 'admin';
+    let isAdminStored = localStorage.getItem('isAdminLoggedIn') === 'true';
+
+    const actionBtnContainer = document.getElementById('headerActionBtn');
+    const isAdmin = isAdminStored || 
+                    (loggedInUser && loggedInUser.toLowerCase() === 'admin') || 
+                    (userRole && userRole.toLowerCase() === 'admin');
+
+    if (isAdmin) {
+        actionBtnContainer.innerHTML = '<a href="index.html" class="btn-back">Back to Portal</a>';
+    } else {
+        actionBtnContainer.innerHTML = '<button class="btn-logout" id="dynamicLogoutBtn">Logout</button>';
+        const logoutBtn = document.getElementById('dynamicLogoutBtn');
+        if(logoutBtn) {
+            logoutBtn.onclick = () => {
+                if (confirm("Are you sure you want to logout?")) {
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                }
+            };
+        }
+    }
+
+    let savedInvoicesList = JSON.parse(localStorage.getItem('ROYAL_INVOICES_STORE')) || [];
+
+    async function syncInvoicesFromCloud() {
+        if (!window.firebaseDB || !window.firebaseDB.db) {
+            alert('Firebase not connected!');
+            return;
+        }
+        try {
+            const querySnapshot = await window.firebaseDB.getDocs(window.firebaseDB.collection(window.firebaseDB.db, "invoices"));
+            let cloudInvoices = [];
+            querySnapshot.forEach((doc) => {
+                cloudInvoices.push(doc.data());
+            });
+            if (cloudInvoices.length > 0) {
+                savedInvoicesList = cloudInvoices.map(item => ({
+                    receiptNo: item.invoiceNo || item.receiptNo,
+                    date: item.date || 'N/A',
+                    paxName: item.clientName || item.paxName,
+                    pnrNo: item.pnrNo,
+                    contactNo: item.contactNo || 'N/A',
+                    email: item.email || 'N/A',
+                    ticketCost: item.ticketCost || '0.000',
+                    vatRate: item.vatRate || '0.00',
+                    vatAmount: item.vatAmount || '0.000',
+                    paymentMethod: item.paymentMethod || 'Bank Transfer',
+                    grandTotal: item.totalAmount || item.grandTotal,
+                    remarks: item.remarks || 'N/A',
+                    issuedBy: item.issuedBy,
+                    isNonRefundable: item.isNonRefundable || false,
+                    stampSrc: item.stampSrc || '',
+                    sigSrc: item.sigSrc || ''
+                }));
+                localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
+                renderHistoryTable();
+                alert('Successfully synced invoices from Cloud Firebase server!');
+            } else {
+                alert('No invoices found in the cloud server.');
+            }
+        } catch (e) {
+            console.error("Sync error:", e);
+            alert('Failed to sync from cloud.');
+        }
+    }
+
+    window.onload = function() {
+        const staffInput = document.getElementById('issuedBy');
+        const dispStaff = document.getElementById('dispIssuedBy');
+        if(staffInput) staffInput.value = loggedInUser.toUpperCase();
+        if(dispStaff) dispStaff.innerText = loggedInUser.toUpperCase();
+
+        const today = new Date();
+        const options = { day: '2-digit', month: 'short', year: 'numeric' };
+        const dateStr = today.toLocaleDateString('en-GB', options).replace(/ /g, '-');
+        const dispDateEl = document.getElementById('dispDate');
+        if(dispDateEl) dispDateEl.innerText = dateStr;
+
+        let currentCounter = parseInt(localStorage.getItem('ROYAL_RECEIPT_COUNTER')) || 216;
+        const receiptInput = document.getElementById('receiptCounter');
+        if(receiptInput) receiptInput.value = currentCounter;
+        
+        const dispRcp = document.getElementById('dispReceiptNo');
+        if(dispRcp) dispRcp.innerText = 'RCP/RH/' + String(currentCounter).padStart(4, '0');
+
+        renderHistoryTable();
+        updateCalculationsAndPreview();
+
+        const updateSaveBtn = document.getElementById('updateSaveBtn');
+        if(updateSaveBtn) updateSaveBtn.addEventListener('click', () => processInvoice('updateAndSave'));
+
+        const printBtn = document.getElementById('printBtn');
+        if(printBtn) printBtn.addEventListener('click', () => processInvoice('print'));
+
+        const resetBtn = document.getElementById('resetBtn');
+        if(resetBtn) resetBtn.addEventListener('click', resetInvoiceForm);
+
+        const toggleHistBtn = document.getElementById('toggleHistBtn');
+        if(toggleHistBtn) toggleHistBtn.addEventListener('click', toggleHistory);
+
+        const modal = document.getElementById('customPasswordModal');
+        const passwordInput = document.getElementById('modalPasswordInput');
+        const unlockBtn = document.getElementById('unlockBtn');
+
+        if(unlockBtn) {
+            unlockBtn.onclick = function() {
+                ADMIN_PASS = localStorage.getItem('ROYAL_RECEIPT_PIN') || '0473';
+                if(passwordInput) passwordInput.value = '';
+                if(modal) modal.style.display = 'flex';
+                if(passwordInput) passwordInput.focus();
+            };
+        }
+
+        const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+        if(modalSubmitBtn) {
+            modalSubmitBtn.onclick = function() {
+                if (passwordInput && passwordInput.value === ADMIN_PASS) {
+                    const inputField = document.getElementById('receiptCounter');
+                    if(inputField) {
+                        inputField.removeAttribute('readonly');
+                        inputField.style.backgroundColor = '#fff';
+                    }
+                    if(modal) modal.style.display = 'none';
+                    alert('Receipt No unlocked successfully!');
+                } else {
+                    alert('Incorrect Admin Password!');
+                }
+            };
+        }
+
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        if(modalCancelBtn) {
+            modalCancelBtn.onclick = function() {
+                if(modal) modal.style.display = 'none';
+            };
+        }
+
+        const inputFields = ['paxName', 'pnrNo', 'contactNo', 'email', 'ticketCost', 'vatRate', 'paymentMethod', 'remarks', 'receiptCounter', 'nonRefundableCheck'];
+        inputFields.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('input', updateCalculationsAndPreview);
+                el.addEventListener('change', updateCalculationsAndPreview);
+            }
+        });
+    };
+
+    function previewImage(input, targetId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById(targetId);
+                if(img) {
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function updateCalculationsAndPreview() {
+        const cost = parseFloat(document.getElementById('ticketCost')?.value) || 0;
+        const vatRate = parseFloat(document.getElementById('vatRate')?.value) || 0;
+        const vatAmt = cost * (vatRate / 100);
+        const grandTotal = cost + vatAmt;
+
+        if(document.getElementById('dispTicketCost')) document.getElementById('dispTicketCost').innerText = cost.toFixed(3);
+        if(document.getElementById('dispVatRate')) document.getElementById('dispVatRate').innerText = vatRate.toFixed(2);
+        if(document.getElementById('dispVatAmount')) document.getElementById('dispVatAmount').innerText = vatAmt.toFixed(3);
+        
+        const totalStr = grandTotal.toFixed(3) + ' OMR';
+        if(document.getElementById('dispGrandTotal')) document.getElementById('dispGrandTotal').innerText = totalStr;
+
+        const paymentMethod = document.getElementById('paymentMethod')?.value || 'Bank Transfer';
+        if(document.getElementById('dispPaymentMethodText')) document.getElementById('dispPaymentMethodText').innerText = paymentMethod + ': ' + totalStr;
+
+        if(document.getElementById('dispPaxName')) document.getElementById('dispPaxName').innerText = document.getElementById('paxName')?.value.trim() || '--';
+        if(document.getElementById('dispPnrNo')) document.getElementById('dispPnrNo').innerText = document.getElementById('pnrNo')?.value.trim() || '--';
+        if(document.getElementById('dispContactNo')) document.getElementById('dispContactNo').innerText = document.getElementById('contactNo')?.value.trim() || '--';
+        if(document.getElementById('dispEmail')) document.getElementById('dispEmail').innerText = document.getElementById('email')?.value.trim() || '--';
+        if(document.getElementById('dispRemarks')) document.getElementById('dispRemarks').innerText = document.getElementById('remarks')?.value.trim() || '--';
+
+        const rcpNum = document.getElementById('receiptCounter')?.value || '216';
+        if(document.getElementById('dispReceiptNo')) document.getElementById('dispReceiptNo').innerText = 'RCP/RH/' + String(rcpNum).padStart(4, '0');
+
+        const isNonRefundable = document.getElementById('nonRefundableCheck')?.checked || false;
+        const stampEl = document.getElementById('nonRefundableStamp');
+        if(stampEl) stampEl.style.display = isNonRefundable ? 'block' : 'none';
+    }
+
+    function resetInvoiceForm() {
+        if(confirm("Are you sure you want to reset the form?")) {
+            const fields = ['paxName', 'pnrNo', 'contactNo', 'email', 'ticketCost', 'remarks'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = '';
+            });
+            const vatEl = document.getElementById('vatRate');
+            if(vatEl) vatEl.value = '0.00';
+            
+            const checkEl = document.getElementById('nonRefundableCheck');
+            if(checkEl) checkEl.checked = false;
+
+            updateCalculationsAndPreview();
+            alert('Voucher reset successfully!');
+        }
+    }
+
+    async function processInvoice(action) {
+        updateCalculationsAndPreview();
+        const receiptNo = document.getElementById('dispReceiptNo')?.innerText || 'RCP/RH/0216';
+        const currentStaff = document.getElementById('issuedBy')?.value || 'ADMIN';
+        const dateStr = document.getElementById('dispDate')?.innerText || '';
+
+        if (action === 'updateAndSave') {
+            const invoiceData = {
+                receiptNo: receiptNo,
+                date: dateStr,
+                paxName: document.getElementById('paxName')?.value || 'N/A',
+                pnrNo: document.getElementById('pnrNo')?.value || 'N/A',
+                contactNo: document.getElementById('contactNo')?.value || 'N/A',
+                email: document.getElementById('email')?.value || 'N/A',
+                ticketCost: document.getElementById('dispTicketCost')?.innerText || '0.000',
+                vatRate: document.getElementById('dispVatRate')?.innerText || '0.00',
+                vatAmount: document.getElementById('dispVatAmount')?.innerText || '0.000',
+                paymentMethod: document.getElementById('paymentMethod')?.value || 'Bank Transfer',
+                grandTotal: document.getElementById('dispGrandTotal')?.innerText || '0.000 OMR',
+                remarks: document.getElementById('remarks')?.value || 'N/A',
+                issuedBy: currentStaff,
+                isNonRefundable: document.getElementById('nonRefundableCheck')?.checked || false,
+                stampSrc: document.getElementById('dispStamp')?.src || '',
+                sigSrc: document.getElementById('dispSig')?.src || ''
+            };
+
+            savedInvoicesList.unshift(invoiceData);
+            localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
+            renderHistoryTable();
+
+            let currentCounter = parseInt(document.getElementById('receiptCounter')?.value) || 216;
+            let nextCounter = currentCounter + 1;
+            localStorage.setItem('ROYAL_RECEIPT_COUNTER', nextCounter);
+
+            const inputField = document.getElementById('receiptCounter');
+            if(inputField) {
+                inputField.value = nextCounter;
+                inputField.setAttribute('readonly', true);
+                inputField.style.backgroundColor = '#e2e8f0';
+            }
+
+            try {
+                if (window.firebaseDB && window.firebaseDB.db) {
+                    await window.firebaseDB.addDoc(window.firebaseDB.collection(window.firebaseDB.db, "invoices"), {
+                        invoiceNo: receiptNo,
+                        date: dateStr,
+                        clientName: invoiceData.paxName,
+                        pnrNo: invoiceData.pnrNo,
+                        contactNo: invoiceData.contactNo,
+                        email: invoiceData.email,
+                        ticketCost: invoiceData.ticketCost,
+                        vatRate: invoiceData.vatRate,
+                        vatAmount: invoiceData.vatAmount,
+                        paymentMethod: invoiceData.paymentMethod,
+                        totalAmount: invoiceData.grandTotal,
+                        remarks: invoiceData.remarks,
+                        issuedBy: currentStaff,
+                        isNonRefundable: invoiceData.isNonRefundable,
+                        stampSrc: invoiceData.stampSrc,
+                        sigSrc: invoiceData.sigSrc,
+                        createdAt: new Date().toISOString()
+                    });
+                }
+            } catch (e) {
+                console.error("Cloud sync error:", e);
+            }
+
+            alert('Invoice updated and saved successfully to Store & Cloud!');
+        } else if (action === 'print') {
+            window.print();
+        }
+    }
+
+    function renderHistoryTable() {
+        const tbody = document.getElementById('historyTableBody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        savedInvoicesList.forEach((inv, index) => {
+            const row = document.createElement('tr');
+            
+            let actionButtonsHtml = `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="viewSavedInvoice(${index})">View PDF</button>`;
+            
+            if (isAdmin) {
+                actionButtonsHtml += ` <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px; margin-left: 5px;" onclick="deleteSingleInvoice(${index})">Delete</button>`;
+            }
+
+            row.innerHTML = `
+                <td>${inv.receiptNo}</td>
+                <td>${inv.date}</td>
+                <td>${inv.paxName}</td>
+                <td>${inv.pnrNo}</td>
+                <td>${inv.grandTotal}</td>
+                <td>${inv.issuedBy}</td>
+                <td>${actionButtonsHtml}</td>
+            `;
+            tbody.appendChild(row);
+        });
+        const countEl = document.getElementById('histCount');
+        if(countEl) countEl.innerText = savedInvoicesList.length;
+    }
+
+    function filterHistoryTable() {
+        const query = document.getElementById('historySearchInput')?.value.toLowerCase() || '';
+        const tbody = document.getElementById('historyTableBody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        
+        savedInvoicesList.forEach((inv, index) => {
+            if (inv.receiptNo.toLowerCase().includes(query) || inv.paxName.toLowerCase().includes(query) || inv.pnrNo.toLowerCase().includes(query)) {
+                const row = document.createElement('tr');
+                
+                let actionButtonsHtml = `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="viewSavedInvoice(${index})">View PDF</button>`;
+                
+                if (isAdmin) {
+                    actionButtonsHtml += ` <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px; margin-left: 5px;" onclick="deleteSingleInvoice(${index})">Delete</button>`;
+                }
+
+                row.innerHTML = `
+                    <td>${inv.receiptNo}</td>
+                    <td>${inv.date}</td>
+                    <td>${inv.paxName}</td>
+                    <td>${inv.pnrNo}</td>
+                    <td>${inv.grandTotal}</td>
+                    <td>${inv.issuedBy}</td>
+                    <td>${actionButtonsHtml}</td>
+                `;
+                tbody.appendChild(row);
+            }
+        });
+    }
+
+    function deleteSingleInvoice(index) {
+        if (confirm("Are you sure you want to delete this specific invoice?")) {
+            savedInvoicesList.splice(index, 1);
+            localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
+            renderHistoryTable();
+            alert('Invoice deleted successfully!');
+        }
+    }
+
+    function viewSavedInvoice(index) {
+        const inv = savedInvoicesList[index];
+        if(!inv) return;
+
+        const modalContainer = document.getElementById('modalInvoiceContentContainer');
+        if(!modalContainer) return;
+
+        modalContainer.innerHTML = `
+            <div class="invoice-card" style="margin: 0 auto;">
+                <div style="position: absolute; top: 67%; left: 32%; transform: translate(-50%, -50%) rotate(-8deg); border: 3px solid #dc2626; color: #dc2626; padding: 6px 15px; font-size: 16px; font-weight: 900; text-align: center; letter-spacing: 1px; text-transform: uppercase; display: ${inv.isNonRefundable ? 'block' : 'none'}; background-color: transparent;">NON-REFUNDABLE<span style="font-size: 13px; display: block; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; margin-top: 1px;">غير قابل للاسترداد</span></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: bold;">Customer Copy / نسخة العميل</div>
+                </div>
+                
+                <div class="inv-header">
+                    <div class="logo-box">
+                        <div class="logo-main">Royal</div>
+                        <div style="font-size: 15px; color: #1d4ed8; font-style: italic; font-weight: bold; margin-top: 2px;">holidays</div>
+                        <div class="logo-sub">TRAVELS & TOURS SERVICES</div>
+                    </div>
+                    <div class="header-center-details">
+                        <div class="header-arabic-title">عطلات الفخامة</div>
+                        <div style="font-weight: bold; color: #1e3a8a; font-size: 12px;">للسفر والسياحة والخدمات</div>
+                        <div style="margin-top: 3px; font-size: 10px;">ش.ت : ۱۰۱۳۷۳۰ ، نقال : ٩٦۸ ٩٣٦۸٦٦۳۱+ ، هاتف : ٩٦۸ ۲۳۲۸۸۷۳۸+ ، شارع السلام صلالة - ۲۱۱ ، سلطنة عمان</div>
+                        <div style="font-weight: 500; margin-top: 2px; font-size: 10px;">C.R. 1013730 GSM: +968 93686631 Tel: +968 23288738, Al Salam Street, Salalah - 211, S. of Oman</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="voucher-badge">
+                            <span class="ar">سند قبض / فاتورة</span>
+                            <span class="en">Receipt Voucher / Tax Invoice</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inv-meta-row">
+                    <div><strong>Receipt / No / رقم الإيصال:</strong> <span class="rcp-no">${inv.receiptNo}</span></div>
+                    <div><strong>Date / التاريخ:</strong> <span>${inv.date}</span></div>
+                </div>
+
+                <table class="details-table">
+                    <tr>
+                        <td class="label">Pax Name / المسافر:</td><td>${inv.paxName}</td>
+                        <td class="label">PNR No. / برقم الحجز:</td><td>${inv.pnrNo}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Contact / No / الهاتف:</td><td>${inv.contactNo}</td>
+                        <td class="label">Email / البريد:</td><td>${inv.email}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Remarks / التفاصيل:</td><td colspan="3">${inv.remarks}</td>
+                    </tr>
+                </table>
+
+                <table class="pricing-table">
+                    <thead><tr><th>Description / البيان</th><th class="amount-col">Amount (OMR) / المبلغ</th></tr></thead>
+                    <tbody>
+                        <tr><td>Air Ticket Booking Charges / رسوم تذكرة الطيران</td><td class="amount-col">${inv.ticketCost}</td></tr>
+                        <tr><td>VAT at <span>${inv.vatRate}</span>% / ضريبة القيمة المضافة</td><td class="amount-col">${inv.vatAmount}</td></tr>
+                        <tr>
+                            <td><strong>Collection Mode / طريقة الدفع:</strong><br><span style="font-size: 12px; color: #1e40af;">${inv.paymentMethod}: ${inv.grandTotal}</span></td>
+                            <td class="amount-col" style="vertical-align: middle;"><strong>Grand Total / المبلغ الإجمالي:</strong><br><span style="font-size: 15px; color: #1e3a8a;">${inv.grandTotal}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="footer-notes">
+                    <p>This receipt is not valid without company stamp / لا يعتبر هذا الإيصال سارياً بدون ختم الشركة</p>
+                    <p>Service charge is non-refundable / رسوم الخدمة غير قابلة للإرجاع</p>
+                </div>
+
+                <div class="stamp-line">
+                    <div>
+                        <div style="margin-bottom: 3px;">Company Stamp / ختم الشركة</div>
+                        <div class="stamp-signature-wrapper"><img src="${inv.stampSrc}" class="preview-img stamp-img" style="display: ${inv.stampSrc ? 'block' : 'none'};" alt="Stamp"></div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="margin-bottom: 3px; font-size: 11px; color: #64748b;">Issued By: <span>${inv.issuedBy}</span> | Royal Holidays, Salalah, Oman</div>
+                        <div style="font-size: 11px; color: #475569; margin-bottom: 3px;">Receiver's Sign / توقيع المستلم</div>
+                        <div class="stamp-signature-wrapper"><img src="${inv.sigSrc}" class="preview-img sig-img" style="display: ${inv.sigSrc ? 'block' : 'none'};" alt="Signature"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 15px;" class="no-print">
+                <button class="btn btn-secondary" onclick="window.print()">Print This Invoice</button>
+            </div>
+        `;
+
+        const viewModal = document.getElementById('invoiceViewModal');
+        if(viewModal) viewModal.style.display = 'flex';
+    }
+
+    function closeViewModal() {
+        const viewModal = document.getElementById('invoiceViewModal');
+        if(viewModal) viewModal.style.display = 'none';
+    }
+
+    function toggleHistory() {
+        const histSection = document.getElementById('history-section');
+        const toggleBtn = document.getElementById('toggleHistBtn');
+        if(!histSection || !toggleBtn) return;
+
+        if (histSection.style.display === 'none' || histSection.style.display === '') {
+            histSection.style.display = 'block';
+            toggleBtn.innerText = 'Hide History';
+        } else {
+            histSection.style.display = 'none';
+            const count = savedInvoicesList.length;
+            toggleBtn.innerText = `View History (${count})`;
+        }
+    }
+</script>
+</body>
+</html>
