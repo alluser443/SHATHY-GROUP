@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Unified Admin Dashboard - Shathy Group</title>
+    <!-- Firebase App (Core SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <!-- Firebase Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.5), rgba(30, 58, 138, 0.45)), 
+                        url('https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover; color: #333; padding: 25px; margin: 0; min-height: 100vh;
+        }
+        
+        #welcomeOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
+            animation: fadeOut 0.8s ease 2.2s forwards;
+        }
+        .welcome-box {
+            text-align: center; color: #fff;
+            animation: zoomIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .welcome-box h1 { font-size: 32px; margin: 0 0 10px 0; color: #38bdf8; text-shadow: 0 4px 15px rgba(56,189,248,0.4); }
+        .welcome-box p { font-size: 18px; margin: 0; color: #e2e8f0; font-weight: 600; }
+        
+        @keyframes zoomIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; visibility: visible; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+
+        .admin-header { 
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; 
+            background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+            padding: 20px 28px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+        }
+        .header-left h2 { margin: 0; font-size: 24px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); letter-spacing: 0.5px; }
+        .header-left p { margin: 6px 0 0 0; font-size: 13px; color: #cbd5e1; font-weight: 500; }
+        
+        .header-actions { display: flex; align-items: center; gap: 12px; }
+        
+        .btn-logout { 
+            background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; 
+            padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 13px; 
+            cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-logout:hover { 
+            background: linear-gradient(135deg, #dc2626, #b91c1c); 
+            transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6); 
+        }
+        .btn-logout:active { transform: translateY(0); }
+        
+        .quick-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; max-width: 1400px; margin: 0 auto 25px auto; }
+        .module-tile {
+            background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.9);
+            padding: 18px; border-radius: 16px; text-align: center; text-decoration: none; color: #1e3a8a; font-weight: bold; box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer;
+        }
+        .module-tile:hover { transform: translateY(-4px); background: rgba(255, 255, 255, 0.98); box-shadow: 0 12px 30px rgba(30,58,138,0.25); }
+        .module-tile span { font-size: 28px; }
+        .module-tile h4 { margin: 0; font-size: 15px; color: #0f172a; }
+
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; max-width: 1400px; margin: auto; }
+        
+        .card { 
+            background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); 
+            padding: 22px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); 
+            margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.7);
+            cursor: pointer; transition: all 0.3s ease;
+        }
+        .card:hover { transform: translateY(-3px); background: rgba(255, 255, 255, 0.96); box-shadow: 0 12px 35px rgba(30,58,138,0.22); }
+        
+        .section-title { font-size: 15px; font-weight: bold; color: #1e3a8a; display: flex; justify-content: space-between; align-items: center; }
+        
+        label { font-weight: 600; font-size: 12px; color: #334155; display: block; margin-bottom: 3px; }
+        input, select { width: 100%; padding: 9px; margin-bottom: 10px; border: 1px solid rgba(203, 213, 224, 0.8); border-radius: 8px; font-size: 12px; background: rgba(255,255,255,0.9); }
+        
+        .btn { background: #16a34a; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .btn:hover { background: #15803d; }
+        .success { color: #16a34a; margin-top: 8px; text-align: center; font-weight: bold; font-size: 12px; }
+        .error { color: #dc2626; margin-top: 8px; text-align: center; font-weight: bold; font-size: 12px; }
+
+        .staff-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+        .staff-table th, .staff-table td { border: 1px solid rgba(203, 213, 224, 0.8); padding: 8px 10px; text-align: left; background: rgba(255,255,255,0.9); }
+        .staff-table th { background-color: rgba(241, 245, 249, 0.9); color: #1e293b; }
+        
+        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #16a34a; }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        .btn-action { padding: 4px 8px; font-size: 11px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-right: 2px; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-edit { background: #2563eb; color: white; }
+
+        .collapsible-content { display: none; margin-top: 15px; border-top: 1px solid rgba(203, 213, 224, 0.6); padding-top: 15px; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+        .modal-content { background: #fff; padding: 20px; border-radius: 12px; width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+
+    <div id="welcomeOverlay">
+        <div class="welcome-box">
+            <h1>Welcome to Admin Panel</h1>
+            <p>NUR AHAMMED</p>
+        </div>
+    </div>
+
+    <div class="admin-header">
+        <div class="header-left">
+            <h2>Unified Administrative Control Panel</h2>
+            <p>Master Access: Control Royal Holidays, Aston, PNR & Accounting Systems Securely.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-logout" id="logoutBtn">🚪 Logout</button>
+        </div>
+    </div>
+
+    <div class="quick-modules">
+        <div class="module-tile" onclick="openModule('royal.html')"><span>✈️</span><h4>Royal Holidays</h4><small style="color:#475569;">Invoice Generator</small></div>
+        <div class="module-tile" onclick="openModule('aston.html')"><span>🏢</span><h4>Aston Al Asariya</h4><small style="color:#475569;">Trade & Service</small></div>
+        <div class="module-tile" onclick="openModule('pnr.html')"><span>⏰</span><h4>PNR & Check-In</h4><small style="color:#475569;">Flight Tracker</small></div>
+        <div class="module-tile" onclick="openModule('accounts.html')"><span>📊</span><h4>Accounting</h4><small style="color:#475569;">Income & Expenses</small></div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div>
+            <div class="card" onclick="toggleSection('createAccBox')">
+                <div class="section-title">
+                    <span>➕ Create Portal Account</span>
+                    <span style="font-size: 12px; color: #0284c7;">Click to Open ▼</span>
+                </div>
+                <div id="createAccBox" class="collapsible-content" onclick="event.stopPropagation()">
+                    <label>Select System:</label>
+                    <select id="targetCompany">
+                        <option value="royal">Royal Holidays</option>
+                        <option value="aston">Aston Al Asariya</option>
+                        <option value="pnr">PNR & Check-In</option>
+                        <option value="accounts">Accounting</option>
+                    </select>
+
+                    <label>Full Name:</label>
+                    <input type="text" id="fullName" placeholder="e.g. Staff Name">
+
+                    <label>Username:</label>
+                    <input type="text" id="newUsername" placeholder="e.g. staff1">
+
+                    <label>Password:</label>
+                    <div style="position:relative;">
+                        <input type="password" id="newPassword" placeholder="Password">
+                        <span onclick="togglePasswordVisibility('newPassword', this)" style="position:absolute; right:10px; top:9px; cursor:pointer; font-size:14px;">👁️</span>
+                    </div>
+
+                    <label>2-Digit Quick PIN:</label>
+                    <input type="text" id="newQuickPin" maxlength="2" placeholder="e.g. 73">
+
+                    <button class="btn" id="createStaffBtn">Create Account</button>
+                    <div id="msg" class="success"></div>
+                </div>
+            </div>
+
+            <div class="card" onclick="toggleSection('adminSecBox')">
+                <div class="section-title">
+                    <span>🔑 Change Admin Security</span>
+                    <span style="font-size: 12px; color: #0284c7;">Click to Open ▼</span>
+                </div>
+                <div id="adminSecBox" class="collapsible-content" onclick="event.stopPropagation()">
+                    <label>Current Admin Username:</label><input type="text" id="currentAdminUser" placeholder="Current username">
+                    <label>New Admin Username (Optional):</label><input type="text" id="newAdminUser" placeholder="New username">
+                    <label>Current Password:</label><input type="password" id="currentAdminPass" placeholder="Current password">
+                    <label>New Password (Optional):</label><input type="password" id="newAdminPass" placeholder="New password">
+                    <label>New 2-Digit Quick PIN (Optional):</label><input type="text" id="newAdminPin" maxlength="2" placeholder="e.g. 73">
+                    <button class="btn" id="changeAdminCredsBtn" style="background: #2563eb;">Update Admin Security</button>
+                    <div id="adminPassMsg"></div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="card" onclick="toggleSection('royalDirBox')">
+                <div class="section-title" style="color: #0284c7;">
+                    <span>📁 Royal Holidays Staff Directory</span>
+                    <span style="font-size: 12px; color: #0284c7;">Click to Open ▼</span>
+                </div>
+                <div id="royalDirBox" class="collapsible-content" onclick="event.stopPropagation()">
+                    <div style="margin-bottom: 15px; padding: 12px; background: rgba(224, 242, 254, 0.6); border-radius: 8px;" onclick="event.stopPropagation()">
+                        <label style="color: #0369a1;">Royal Unlock Receipt PIN:</label>
+                        <input type="text" id="royalReceiptPinInput" placeholder="Enter new unlock pin">
+                        <button class="btn" onclick="updateReceiptPin('royal')" style="background: #0284c7; padding: 6px;">Update Royal PIN</button>
+                        <div id="royalPinMsg" style="font-size: 11px; margin-top: 4px; font-weight: bold;"></div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="staff-table">
+                            <thead><tr><th>Name</th><th>Username</th><th>PIN</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="royalTableBody">
+                                <tr id="adminRowRoyal"><td><strong>NUR AHAMMED</strong></td><td id="displayAdminUser">admin</td><td><code>73</code></td><td><label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td><td>Protected</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" onclick="toggleSection('astonDirBox')">
+                <div class="section-title" style="color: #1e3a8a;">
+                    <span>📁 Aston Al Asariya Staff Directory</span>
+                    <span style="font-size: 12px; color: #0284c7;">Click to Open ▼</span>
+                </div>
+                <div id="astonDirBox" class="collapsible-content" onclick="event.stopPropagation()">
+                    <div style="margin-bottom: 15px; padding: 12px; background: rgba(219, 234, 254, 0.6); border-radius: 8px;" onclick="event.stopPropagation()">
+                        <label style="color: #1d4ed8;">Aston Unlock Receipt PIN:</label>
+                        <input type="text" id="astonReceiptPinInput" placeholder="Enter new unlock pin">
+                        <button class="btn" onclick="updateReceiptPin('aston')" style="background: #1d4ed8; padding: 6px;">Update Aston PIN</button>
+                        <div id="astonPinMsg" style="font-size: 11px; margin-top: 4px; font-weight: bold;"></div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="staff-table">
+                            <thead><tr><th>Name</th><th>Username</th><th>PIN</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="astonTableBody">
+                                <tr id="adminRowAston"><td><strong>NUR AHAMMED</strong></td><td id="displayAdminUserAston">admin</td><td><code>73</code></td><td><label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td><td>Protected</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:#1e3a8a;">Edit Staff Account</h3>
+            <input type="hidden" id="editUsernameKey">
+            <label>Full Name:</label>
+            <input type="text" id="editFullName">
+            <label>Password:</label>
+            <div style="position:relative;">
+                <input type="password" id="editPassword">
+                <span onclick="togglePasswordVisibility('editPassword', this)" style="position:absolute; right:10px; top:9px; cursor:pointer; font-size:14px;">👁️</span>
+            </div>
+            <label>Quick PIN:</label>
+            <input type="text" id="editQuickPin" maxlength="2">
+            <button class="btn" onclick="saveEditedStaff()">Save Changes</button>
+            <button class="btn" style="background:#64748b; margin-top:6px;" onclick="closeEditModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration (আপনার প্রজেক্ট অনুযায়ী কনফিগারেশন এখানে যুক্ত করুন)
+        const firebaseConfig = {
+            databaseURL: "https://royal-invi-default-rtdb.firebaseio.com/" // আপনার ফায়ারবেজ রিয়েলটাইম ডাটাবেজ ইউআরএল এখানে দিন
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // সিকিউরিটি চেক: অ্যাডমিন লগইন করা না থাকলে সরাসরি login.html এ পাঠিয়ে দিবে
+            if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const overlay = document.getElementById('welcomeOverlay');
+            if (sessionStorage.getItem('admin_welcome_shown')) {
+                if (overlay) overlay.style.display = 'none';
+            } else {
+                sessionStorage.setItem('admin_welcome_shown', 'true');
+            }
+
+            // ফায়ারবেজ থেকে রিয়েল-টাইম ডাটা সিংক্রোনাইজেশন
+            db.ref('CUSTOM_PORTAL_USERS').on('value', (snapshot) => {
+                const firebaseUsers = snapshot.val() || {};
+                localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(firebaseUsers));
+                loadStaffDirectories();
+            });
+        });
+
+        document.getElementById('logoutBtn').onclick = () => {
+            localStorage.removeItem('isAdminLoggedIn');
+            sessionStorage.removeItem('admin_welcome_shown');
+            window.location.href = 'login.html';
+        };
+
+        function openModule(page) {
+            localStorage.setItem('isAdminLoggedIn', 'true');
+            localStorage.setItem('LOGGED_IN_STAFF_NAME', 'NUR AHAMMED');
+            window.location.href = page;
+        }
+
+        function toggleSection(boxId) {
+            const box = document.getElementById(boxId);
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function togglePasswordVisibility(fieldId, icon) {
+            const field = document.getElementById(fieldId);
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                field.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+
+        function loadAdminDetails() {
+            let adminCreds = JSON.parse(localStorage.getItem('ADMIN_CREDENTIALS')) || { username: 'admin', password: '0473', pin: '73' };
+            document.getElementById('displayAdminUser').innerText = adminCreds.username;
+            document.getElementById('displayAdminUserAston').innerText = adminCreds.username;
+
+            let royalPin = localStorage.getItem('ROYAL_RECEIPT_PIN') || 'ROYAL_PIN';
+            let astonPin = localStorage.getItem('ASTON_RECEIPT_PIN') || 'ASTON_PIN';
+            document.getElementById('royalReceiptPinInput').value = royalPin;
+            document.getElementById('astonReceiptPinInput').value = astonPin;
+        }
+
+        function updateReceiptPin(systemType) {
+            if (systemType === 'royal') {
+                let newPin = document.getElementById('royalReceiptPinInput').value.trim();
+                let msgEl = document.getElementById('royalPinMsg');
+                if (!newPin) {
+                    msgEl.className = "error";
+                    msgEl.innerText = "Please enter PIN!";
+                    return;
+                }
+                localStorage.setItem('ROYAL_RECEIPT_PIN', newPin);
+                db.ref('ROYAL_RECEIPT_PIN').set(newPin);
+                msgEl.className = "success";
+                msgEl.innerText = "Royal PIN updated successfully!";
+                setTimeout(() => { msgEl.innerText = ''; }, 3000);
+            } else if (systemType === 'aston') {
+                let newPin = document.getElementById('astonReceiptPinInput').value.trim();
+                let msgEl = document.getElementById('astonPinMsg');
+                if (!newPin) {
+                    msgEl.className = "error";
+                    msgEl.innerText = "Please enter PIN!";
+                    return;
+                }
+                localStorage.setItem('ASTON_RECEIPT_PIN', newPin);
+                db.ref('ASTON_RECEIPT_PIN').set(newPin);
+                msgEl.className = "success";
+                msgEl.innerText = "Aston PIN updated successfully!";
+                setTimeout(() => { msgEl.innerText = ''; }, 3000);
+            }
+        }
+
+        function loadStaffDirectories() {
+            loadAdminDetails();
+            let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
+            const royalBody = document.getElementById('royalTableBody');
+            const astonBody = document.getElementById('astonTableBody');
+
+            let adminCreds = JSON.parse(localStorage.getItem('ADMIN_CREDENTIALS')) || { username: 'admin', pin: '73' };
+
+            royalBody.innerHTML = `<tr><td><strong>NUR AHAMMED</strong></td><td>${adminCreds.username}</td><td><code>${adminCreds.pin || '73'}</code></td><td><label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td><td>Protected</td></tr>`;
+            astonBody.innerHTML = `<tr><td><strong>NUR AHAMMED</strong></td><td>${adminCreds.username}</td><td><code>${adminCreds.pin || '73'}</code></td><td><label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td><td>Protected</td></tr>`;
+
+            for (let username in customUsers) {
+                let user = customUsers[username];
+                let row = `<tr>
+                    <td>${user.name}</td>
+                    <td>${username}</td>
+                    <td><code>${user.pin}</code></td>
+                    <td><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="openEditModal('${username}')">Edit</button>
+                        <button class="btn-action btn-danger" onclick="deleteStaffUser('${username}')">Delete</button>
+                    </td>
+                </tr>`;
+
+                if (user.system === 'royal') {
+                    royalBody.innerHTML += row;
+                } else if (user.system === 'aston') {
+                    astonBody.innerHTML += row;
+                }
+            }
+        }
+
+        function openEditModal(username) {
+            let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
+            let user = customUsers[username];
+            if(user) {
+                document.getElementById('editUsernameKey').value = username;
+                document.getElementById('editFullName').value = user.name;
+                document.getElementById('editPassword').value = user.password;
+                document.getElementById('editQuickPin').value = user.pin;
+                document.getElementById('editModal').style.display = 'flex';
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function saveEditedStaff() {
+            let username = document.getElementById('editUsernameKey').value;
+            let name = document.getElementById('editFullName').value.trim();
+            let password = document.getElementById('editPassword').value.trim();
+            let pin = document.getElementById('editQuickPin').value.trim();
+
+            if(!name || !password || !pin) {
+                alert('Please fill all fields!');
+                return;
+            }
+
+            let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
+            if(customUsers[username]) {
+                customUsers[username].name = name;
+                customUsers[username].password = password;
+                customUsers[username].pin = pin;
+                
+                // ফায়ারবেজ ও লোকালস্টোরেজে একসাথে আপডেট করা হচ্ছে
+                localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(customUsers));
+                db.ref('CUSTOM_PORTAL_USERS').set(customUsers);
+
+                closeEditModal();
+                loadStaffDirectories();
+            }
+        }
+
+        document.getElementById('createStaffBtn').onclick = () => {
+            const targetCompany = document.getElementById('targetCompany').value;
+            const fullName = document.getElementById('fullName').value.trim();
+            const username = document.getElementById('newUsername').value.trim().toLowerCase();
+            const password = document.getElementById('newPassword').value.trim();
+            const quickPin = document.getElementById('newQuickPin').value.trim();
+
+            if(!fullName || !username || !password || !quickPin) { 
+                alert('Please fill all fields!'); 
+                return; 
+            }
+
+            let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
+            customUsers[username] = { password, name: fullName, pin: quickPin, system: targetCompany };
+
+            // লোকালস্টোরেজ এবং ফায়ারবেজ রিয়েলটাইম ডাটাবেজে সেভ করা হচ্ছে
+            localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(customUsers));
+            db.ref('CUSTOM_PORTAL_USERS').set(customUsers);
+
+            document.getElementById('msg').innerText = "Account created and synced successfully!";
+            setTimeout(() => document.getElementById('msg').innerText = '', 3000);
+
+            document.getElementById('fullName').value = '';
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newQuickPin').value = '';
+
+            loadStaffDirectories();
+        };
+
+        function deleteStaffUser(username) {
+            if(confirm(`Are you sure to delete user: ${username}?`)) {
+                let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
+                delete customUsers[username];
+                
+                // ফায়ারবেজ ও লোকালস্টোরেজ থেকে ডিলিট করা হচ্ছে
+                localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(customUsers));
+                db.ref('CUSTOM_PORTAL_USERS').set(customUsers);
+
+                loadStaffDirectories();
+            }
+        }
+
+        document.getElementById('changeAdminCredsBtn').onclick = () => {
+            const currentAdminUser = document.getElementById('currentAdminUser').value.trim();
+            const newAdminUser = document.getElementById('newAdminUser').value.trim();
+            const currentPass = document.getElementById('currentAdminPass').value.trim();
+            const newPass = document.getElementById('newAdminPass').value.trim();
+            const newPin = document.getElementById('newAdminPin').value.trim();
+            const msgEl = document.getElementById('adminPassMsg');
+
+            let adminCreds = JSON.parse(localStorage.getItem('ADMIN_CREDENTIALS')) || { username: 'admin', password: '0473', pin: '73' };
+
+            if (!currentAdminUser || !currentPass) {
+                msgEl.className = "error";
+                msgEl.innerText = "Current username and password required!";
+                return;
+            }
+
+            if (currentAdminUser !== adminCreds.username || currentPass !== adminCreds.password) {
+                msgEl.className = "error";
+                msgEl.innerText = "Incorrect current username or password!";
+                return;
+            }
+
+            if (newAdminUser) adminCreds.username = newAdminUser;
+            if (newPass) adminCreds.password = newPass;
+            if (newPin) adminCreds.pin = newPin;
+
+            localStorage.setItem('ADMIN_CREDENTIALS', JSON.stringify(adminCreds));
+            db.ref('ADMIN_CREDENTIALS').set(adminCreds);
+
+            msgEl.className = "success";
+            msgEl.innerText = "Admin security updated successfully!";
+            setTimeout(() => { msgEl.innerText = ''; }, 3000);
+
+            document.getElementById('currentAdminUser').value = '';
+            document.getElementById('newAdminUser').value = '';
+            document.getElementById('currentAdminPass').value = '';
+            document.getElementById('newAdminPass').value = '';
+            document.getElementById('newAdminPin').value = '';
+
+            loadStaffDirectories();
+        };
+    </script>
+</body>
+</html>

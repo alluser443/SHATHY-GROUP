@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Income & Expense Accounts - Shathy Group</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.45), rgba(30, 58, 138, 0.4)), 
+                        url('https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover; margin: 0; padding: 20px; color: #333; min-height: 100vh;
+        }
+        .container { 
+            max-width: 1150px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(12px); padding: 25px; border-radius: 14px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e0; padding-bottom: 12px; margin-bottom: 20px; }
+        h2.app-title { margin: 0; color: #1e3a8a; font-size: 22px; }
+        .btn-back { background-color: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-back:hover { background-color: #1d4ed8; }
+        .btn-logout { background-color: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-logout:hover { background-color: #b91c1c; }
+
+        .filter-bar { display: flex; gap: 15px; align-items: center; background: #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; }
+        .filter-bar label { font-weight: bold; font-size: 13px; color: #334155; }
+        .filter-bar input { padding: 6px 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 13px; }
+
+        .section-title { font-size: 15px; font-weight: bold; color: #1e40af; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #cbd5e0; padding-bottom: 4px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #4a5568; }
+        .form-group input, .form-group select { padding: 9px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 13px; background: #fff; }
+
+        #ticketExtraBox { display: none; background: #eff6ff; border: 1px dashed #3b82f6; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .ticket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .btn-primary { background-color: #16a34a; color: white; }
+        .btn-secondary { background-color: #0284c7; color: white; }
+
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .card-box { background: #f8fafc; border: 1px solid #cbd5e0; padding: 14px; border-radius: 8px; text-align: center; }
+        .card-box h4 { margin: 0 0 5px 0; font-size: 11px; color: #64748b; }
+        .card-box .val { font-size: 14px; font-weight: bold; color: #1e3a8a; }
+
+        .accounts-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        .accounts-table th, .accounts-table td { border: 1px solid #cbd5e0; padding: 8px 10px; text-align: left; }
+        .accounts-table th { background-color: #f1f5f9; color: #1e293b; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .no-print { display: none !important; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; background: white; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-flex">
+        <h2 class="app-title">📊 Daily Income & Expense Accounts Summary</h2>
+        <div id="headerActionBtn"></div>
+    </div>
+
+    <!-- Month Filter Bar for Backup & Historical Review -->
+    <div class="filter-bar no-print">
+        <label>Select Month to View/Print Summary:</label>
+        <input type="month" id="filterMonth" onchange="renderTransactions()">
+        <button class="btn" style="background:#475569; color:#fff; padding:6px 12px; font-size:12px;" onclick="resetMonthFilter()">Current Month</button>
+    </div>
+
+    <div class="summary-cards">
+        <div class="card-box"><h4>Rent-A-Car Income</h4><div class="val" id="sumCarInc">0.000 OMR</div></div>
+        <div class="card-box"><h4>Others Income</h4><div class="val" id="sumOtherInc" style="color: #16a34a;">0.000 OMR</div></div>
+        <div class="card-box"><h4>Rent-A-Car Expense</h4><div class="val" id="sumCarExp" style="color: #dc2626;">0.000 OMR</div></div>
+        <div class="card-box"><h4>Travels Profit (Income)</h4><div class="val" id="sumTravel">0.000 OMR</div></div>
+        <div class="card-box"><h4>Office Expense</h4><div class="val" id="sumOfficeExp">0.000 OMR</div></div>
+        <div class="card-box"><h4>Family Expense</h4><div class="val" id="sumFamilyExp" style="color: #d97706;">0.000 OMR</div></div>
+        <div class="card-box"><h4>Personal Expense</h4><div class="val" id="sumPersonalExp">0.000 OMR</div></div>
+        <div class="card-box" style="background: #e0f2fe; border-color: #7dd3fc;"><h4>Net Balance / Profit</h4><div class="val" id="netProfit" style="color: #0369a1;">0.000 OMR</div></div>
+    </div>
+
+    <div class="form-container no-print">
+        <div class="section-title">Add Daily Transaction (Income / Expense)</div>
+        <div class="form-grid">
+            <div class="form-group"><label>Date:</label><input type="date" id="txDate"></div>
+            <div class="form-group"><label>Category Type:</label>
+                <select id="txCategory" onchange="checkCategorySelection()">
+                    <option value="Rent-A-Car Income">🚗 Rent-A-Car Income</option>
+                    <option value="Others Income">💰 Others Income</option>
+                    <option value="Rent-A-Car Expense">🔧 Rent-A-Car Expense</option>
+                    <option value="Travels Income">✈️ Travels & Tours Income (Ticket Profit)</option>
+                    <option value="Office Expense">🏢 Official Expense</option>
+                    <option value="Family Expense">👨‍👩‍👧 Family Expense</option>
+                    <option value="Personal Expense">👤 Personal Expense</option>
+                </select>
+            </div>
+            <div class="form-group" id="standardAmountGroup"><label>Amount (OMR):</label><input type="number" step="0.001" id="txAmount" placeholder="0.000"></div>
+            <div class="form-group"><label>Description / Details:</label><input type="text" id="txDesc" placeholder="e.g. Extra Income / Maintenance"></div>
+        </div>
+
+        <div id="ticketExtraBox">
+            <div style="font-weight: bold; color: #1e3a8a; margin-bottom: 8px; font-size: 13px;">✈️ Flight Ticket Fare Breakdown</div>
+            <div class="ticket-grid">
+                <div class="form-group"><label>Net Fare (Cost Price - OMR):</label><input type="number" step="0.001" id="netFare" placeholder="0.000" oninput="calculateTicketProfit()"></div>
+                <div class="form-group"><label>Published Fare (Selling Price - OMR):</label><input type="number" step="0.001" id="pubFare" placeholder="0.000" oninput="calculateTicketProfit()"></div>
+                <div class="form-group"><label>Calculated Profit (Auto):</label><input type="text" id="calcProfit" readonly style="background: #e2e8f0; font-weight: bold; color: #16a34a;" value="0.000 OMR"></div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-primary" id="addTxBtn">Add Transaction</button>
+            <button class="btn btn-secondary" onclick="window.print()">Print Monthly Report / PDF</button>
+        </div>
+    </div>
+
+    <div class="section-title">Transaction History & Summary</div>
+    <div style="overflow-x: auto;">
+        <table class="accounts-table">
+            <thead>
+                <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount / Profit (OMR)</th><th class="no-print">Action</th></tr>
+            </thead>
+            <tbody id="accountsTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
+    const actionBtnContainer = document.getElementById('headerActionBtn');
+    
+    if (isAdmin) {
+        actionBtnContainer.innerHTML = '<a href="admin.html" class="btn-back">🔙 Back to Admin</a>';
+    } else {
+        actionBtnContainer.innerHTML = '<button class="btn-logout" id="dynamicLogoutBtn">🚪 Logout</button>';
+        document.getElementById('dynamicLogoutBtn').onclick = () => {
+            if (confirm("Are you sure you want to logout?")) window.location.href = 'login.html';
+        };
+    }
+
+    // Auto set current date and initialize month filter to current month
+    const today = new Date();
+    document.getElementById('txDate').valueAsDate = today;
+    
+    const currentYearMonth = today.toISOString().slice(0, 7);
+    document.getElementById('filterMonth').value = currentYearMonth;
+
+    let transactions = JSON.parse(localStorage.getItem('SHATHY_ACCOUNTS')) || [];
+
+    function resetMonthFilter() {
+        document.getElementById('filterMonth').value = new Date().toISOString().slice(0, 7);
+        renderTransactions();
+    }
+
+    function checkCategorySelection() {
+        const cat = document.getElementById('txCategory').value;
+        const ticketBox = document.getElementById('ticketExtraBox');
+        const stdAmountGroup = document.getElementById('standardAmountGroup');
+        if (cat === 'Travels Income') {
+            ticketBox.style.display = 'block';
+            stdAmountGroup.style.display = 'none';
+        } else {
+            ticketBox.style.display = 'none';
+            stdAmountGroup.style.display = 'flex';
+        }
+    }
+
+    function calculateTicketProfit() {
+        const net = parseFloat(document.getElementById('netFare').value) || 0;
+        const pub = parseFloat(document.getElementById('pubFare').value) || 0;
+        const profit = pub - net;
+        document.getElementById('calcProfit').value = profit.toFixed(3) + ' OMR';
+    }
+
+    function renderTransactions() {
+        const tbody = document.getElementById('accountsTableBody');
+        tbody.innerHTML = '';
+        
+        const selectedMonth = document.getElementById('filterMonth').value; // format: YYYY-MM
+
+        let sumCarInc = 0, sumOtherInc = 0, sumCarExp = 0, sumTravel = 0, sumOffice = 0, sumFamily = 0, sumPersonal = 0;
+
+        transactions.forEach((tx, index) => {
+            // Filter records based on selected month (YYYY-MM)
+            if (selectedMonth && !tx.date.startsWith(selectedMonth)) {
+                return;
+            }
+
+            if(tx.category === 'Rent-A-Car Income') sumCarInc += tx.amount;
+            if(tx.category === 'Others Income') sumOtherInc += tx.amount;
+            if(tx.category === 'Rent-A-Car Expense') sumCarExp += tx.amount;
+            if(tx.category === 'Travels Income') sumTravel += tx.amount;
+            if(tx.category === 'Office Expense') sumOffice += tx.amount;
+            if(tx.category === 'Family Expense') sumFamily += tx.amount;
+            if(tx.category === 'Personal Expense') sumPersonal += tx.amount;
+
+            const isIncome = tx.category.includes('Income');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${tx.date}</td>
+                <td><strong>${tx.category}</strong> ${tx.netFare ? `<br><small style="color:#64748b;">(Net: ${tx.netFare} \vert{} Pub:${tx.pubFare})</small>` : ''}</td>
+                <td>${tx.desc}</td>
+                <td style="color: ${isIncome ? '#16a34a' : '#dc2626'}; font-weight: bold;">${isIncome ? '+' : '-'}${tx.amount.toFixed(3)} OMR</td>
+                <td class="no-print"><button onclick="deleteTx(${index})" style="background:#dc2626; color:#fff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer;">Delete</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        document.getElementById('sumCarInc').innerText = sumCarInc.toFixed(3) + ' OMR';
+        document.getElementById('sumOtherInc').innerText = sumOtherInc.toFixed(3) + ' OMR';
+        document.getElementById('sumCarExp').innerText = sumCarExp.toFixed(3) + ' OMR';
+        document.getElementById('sumTravel').innerText = sumTravel.toFixed(3) + ' OMR';
+        document.getElementById('sumOfficeExp').innerText = sumOfficeExp.toFixed(3) + ' OMR';
+        document.getElementById('sumFamilyExp').innerText = sumFamilyExp.toFixed(3) + ' OMR';
+        document.getElementById('sumPersonalExp').innerText = sumPersonalExp.toFixed(3) + ' OMR';
+
+        const totalIncome = sumCarInc + sumOtherInc + sumTravel;
+        const totalExpense = sumCarExp + sumOffice + sumFamily + sumPersonal;
+        const net = totalIncome - totalExpense;
+        const netEl = document.getElementById('netProfit');
+        netEl.innerText = net.toFixed(3) + ' OMR';
+        netEl.style.color = net >= 0 ? '#0369a1' : '#dc2626';
+
+        localStorage.setItem('SHATHY_ACCOUNTS', JSON.stringify(transactions));
+    }
+
+    document.getElementById('addTxBtn').onclick = () => {
+        const date = document.getElementById('txDate').value;
+        const category = document.getElementById('txCategory').value;
+        const desc = document.getElementById('txDesc').value.trim() || 'N/A';
+        let amount = 0;
+        let netFare = null, pubFare = null;
+
+        if (category === 'Travels Income') {
+            netFare = parseFloat(document.getElementById('netFare').value);
+            pubFare = parseFloat(document.getElementById('pubFare').value);
+            if (isNaN(netFare) || isNaN(pubFare)) { alert('Please enter valid Net Fare and Published Fare!'); return; }
+            amount = pubFare - netFare;
+        } else {
+            amount = parseFloat(document.getElementById('txAmount').value);
+            if (isNaN(amount) || amount <= 0) { alert('Please enter a valid amount!'); return; }
+        }
+
+        if(!date) { alert('Please select date!'); return; }
+
+        transactions.push({ date, category, amount, desc, netFare, pubFare });
+        document.getElementById('txAmount').value = '';
+        document.getElementById('netFare').value = '';
+        document.getElementById('pubFare').value = '';
+        document.getElementById('calcProfit').value = '0.000 OMR';
+        document.getElementById('txDesc').value = '';
+        
+        // Keep date updated to current date for subsequent entries
+        document.getElementById('txDate').valueAsDate = new Date();
+        
+        renderTransactions();
+    };
+
+    function deleteTx(index) {
+        if(confirm('Are you sure to delete this transaction?')) {
+            transactions.splice(index, 1);
+            renderTransactions();
+        }
+    }
+
+    window.onload = renderTransactions;
+</script>
+</body>
+</html>

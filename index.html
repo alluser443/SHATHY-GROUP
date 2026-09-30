@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shathy Group - Unified Portal Login</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.45), rgba(30, 58, 138, 0.4)), 
+                        url('https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover; color: #333; 
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center; 
+            min-height: 100vh; margin: 0; padding: 25px 40px; overflow: hidden;
+        }
+
+        .portal-main-header { text-align: center; margin-top: 5px; }
+        .portal-main-header h1 { color: #ffffff; font-size: 26px; font-weight: 800; margin: 0 0 3px 0; text-shadow: 0 2px 5px rgba(0,0,0,0.6); letter-spacing: 1.2px; }
+        .portal-main-header p { color: #cbd5e1; font-size: 11.5px; margin: 0; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+
+        .portal-container { 
+            display: flex; justify-content: space-between; align-items: flex-start; 
+            width: 100%; max-width: 1350px; margin-bottom: 20px; 
+        }
+
+        .column-side { display: flex; flex-direction: column; gap: 15px; width: 280px; }
+        
+        .login-card {
+            width: 280px; background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            padding: 14px 16px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5); transition: transform 0.3s ease;
+        }
+        .login-card:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.32); }
+
+        .brand-header { text-align: center; margin-bottom: 8px; }
+        .brand-title { font-family: 'Georgia', serif; font-size: 15px; font-weight: bold; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.4); font-style: italic; margin: 0; line-height: 1; }
+        .brand-sub-royal { background-color: #0284c7; color: white; font-size: 7px; font-weight: bold; padding: 2px 5px; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 4px; display: inline-block; border-radius: 3px; }
+        .brand-sub-aston { background-color: #1e3a8a; color: white; font-size: 7px; font-weight: bold; padding: 2px 5px; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 4px; display: inline-block; border-radius: 3px; }
+        .brand-sub-admin { background-color: #dc2626; color: white; font-size: 7px; font-weight: bold; padding: 2px 5px; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 4px; display: inline-block; border-radius: 3px; }
+
+        label { font-weight: 600; font-size: 10.5px; color: #f1f5f9; text-shadow: 0 1px 2px rgba(0,0,0,0.5); display: block; margin-bottom: 2px; }
+        
+        .input-group { position: relative; margin-bottom: 6px; }
+        
+        input, select {
+            width: 100%; padding: 6px 9px;
+            border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 6px; font-size: 11.5px;
+            background: rgba(255, 255, 255, 0.9); color: #0f172a;
+        }
+        input::placeholder { color: #64748b; }
+
+        .saved-accounts-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 100; max-height: 120px; overflow-y: auto;
+            display: none;
+        }
+        .saved-account-item {
+            padding: 7px 10px; font-size: 11px; color: #1e293b; cursor: pointer; border-bottom: 1px solid #f1f5f9;
+        }
+        .saved-account-item:hover { background: #e0f2fe; color: #0284c7; }
+
+        .remember-container { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; margin-top: 6px; }
+        .remember-container input { width: 12px; height: 12px; margin-bottom: 0; cursor: pointer; }
+        .remember-container label { font-size: 10px; margin-bottom: 0; cursor: pointer; color: #fff; }
+
+        .btn-portal { border: none; padding: 7px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11.5px; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .btn-royal { background-color: #0284c7; color: white; }
+        .btn-aston { background-color: #1e3a8a; color: white; }
+        .btn-admin { background-color: #dc2626; color: white; }
+        
+        .error-msg { color: #fca5a5; font-size: 10px; text-align: center; margin-top: 3px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+
+        .pin-verification-area { display: none; margin-top: 6px; border-top: 2px dashed rgba(255,255,255,0.5); padding-top: 6px; text-align: center; }
+        .pin-instruction { font-size: 10.5px; color: #ffffff; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.5); margin-bottom: 4px; }
+        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-width: 140px; margin: 0 auto; }
+        .pin-box {
+            background: rgba(255, 255, 255, 0.9); border: 1px solid #fff; border-radius: 4px; height: 28px;
+            font-size: 12px; font-weight: bold; color: #0f172a; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
+        }
+        .pin-box:hover { background: #ffffff; border-color: #3b82f6; color: #1d4ed8; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <div class="portal-main-header">
+        <h1>SHATHY GROUP PORTAL</h1>
+        <p>Select your management system to login securely</p>
+    </div>
+
+    <div class="portal-container">
+        <div class="column-side">
+            <div class="login-card">
+                <div class="brand-header">
+                    <div class="brand-title">Royal Holidays</div>
+                    <div class="brand-sub-royal">Staff Travels & Tours Invoice</div>
+                </div>
+                <div id="royalCredentialsForm">
+                    <label>Username / Email:</label>
+                    <div class="input-group">
+                        <input type="text" id="royalUsernameInput" placeholder="Enter email or select" autocomplete="off">
+                        <div id="royalSavedList" class="saved-accounts-dropdown"></div>
+                    </div>
+                    <label>Password:</label><input type="password" id="royalPasswordInput" placeholder="Password">
+                    <div class="remember-container"><input type="checkbox" id="royalRemember" checked><label for="royalRemember">Remember Me</label></div>
+                    <button class="btn-portal btn-royal" id="royalProceedBtn">Continue & PIN</button>
+                    <div id="royalErrorMsg" class="error-msg"></div>
+                </div>
+                <div id="royalPinArea" class="pin-verification-area">
+                    <div class="pin-instruction">Select PIN:</div>
+                    <div class="grid-container" id="royalPinGrid"></div>
+                    <div id="royalPinErrorMsg" class="error-msg"></div>
+                </div>
+            </div>
+
+            <div class="login-card">
+                <div class="brand-header">
+                    <div class="brand-title">Aston Al Asariya</div>
+                    <div class="brand-sub-aston">Staff Trade & Service Invoice</div>
+                </div>
+                <div id="astonCredentialsForm">
+                    <label>Username / Email:</label>
+                    <div class="input-group">
+                        <input type="text" id="astonUsernameInput" placeholder="Enter email or select" autocomplete="off">
+                        <div id="astonSavedList" class="saved-accounts-dropdown"></div>
+                    </div>
+                    <label>Password:</label><input type="password" id="astonPasswordInput" placeholder="Password">
+                    <div class="remember-container"><input type="checkbox" id="astonRemember" checked><label for="astonRemember">Remember Me</label></div>
+                    <button class="btn-portal btn-aston" id="astonProceedBtn">Continue & PIN</button>
+                    <div id="astonErrorMsg" class="error-msg"></div>
+                </div>
+                <div id="astonPinArea" class="pin-verification-area">
+                    <div class="pin-instruction">Select PIN:</div>
+                    <div class="grid-container" id="astonPinGrid"></div>
+                    <div id="astonPinErrorMsg" class="error-msg"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="column-side">
+            <div class="login-card" style="border-color: rgba(239, 68, 68, 0.7);">
+                <div class="brand-header">
+                    <div class="brand-title">Master Admin</div>
+                    <div class="brand-sub-admin">Full System Control</div>
+                </div>
+                <div id="adminCredentialsForm">
+                    <label>Admin Username / Email:</label>
+                    <div class="input-group">
+                        <input type="text" id="adminUsernameInput" placeholder="Enter email or select" autocomplete="off">
+                        <div id="adminSavedList" class="saved-accounts-dropdown"></div>
+                    </div>
+                    <label>Password:</label><input type="password" id="adminPasswordInput" placeholder="Password">
+                    <div class="remember-container"><input type="checkbox" id="adminRemember" checked><label for="adminRemember">Remember Me</label></div>
+                    <button class="btn-portal btn-admin" id="adminProceedBtn">Continue & PIN</button>
+                    <div id="adminErrorMsg" class="error-msg"></div>
+                </div>
+                <div id="adminPinArea" class="pin-verification-area">
+                    <div class="pin-instruction">Select PIN:</div>
+                    <div class="grid-container" id="adminPinGrid"></div>
+                    <div id="adminPinErrorMsg" class="error-msg"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAE9rSoeTCUgfrJ2QOlibuBCIf2_M0hkw",
+            authDomain: "royal-holidays.firebaseapp.com",
+            databaseURL: "https://royal-holidays-default-rtdb.firebaseio.com",
+            projectId: "royal-holidays",
+            storageBucket: "royal-holidays.firebasestorage.app",
+            messagingSenderId: "470071653456",
+            appId: "1:470071653456:web:b10ca6a1e8c8dc9ac50d55",
+            measurementId: "G-VZCFTN70GJ"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
+
+        window.firebaseAuth = { auth, signInWithEmailAndPassword, db, collection, addDoc };
+    </script>
+
+    <script>
+        function setupSavedAccountsDropdown(systemName) {
+            const usernameInput = document.getElementById(systemName + 'UsernameInput');
+            const passwordInput = document.getElementById(systemName + 'PasswordInput');
+            const dropdownList = document.getElementById(systemName + 'SavedList');
+
+            usernameInput.addEventListener('click', (e) => {
+                e.stopPropagation();
+                let savedAccounts = JSON.parse(localStorage.getItem(systemName + '_SAVED_ACCOUNTS')) || [];
+                
+                if (systemName === 'admin') {
+                    let adminCreds = JSON.parse(localStorage.getItem('ADMIN_CREDENTIALS')) || { username: 'admin', password: '0473' };
+                    if (!savedAccounts.some(acc => acc.username === adminCreds.username)) {
+                        savedAccounts.unshift({ username: adminCreds.username, password: adminCreds.password });
+                    }
+                } else {
+                    let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
+                    for (let uName in customUsers) {
+                        let uData = customUsers[uName];
+                        if (uData.system === systemName && !savedAccounts.some(acc => acc.username === uName)) {
+                            savedAccounts.push({ username: uName, password: uData.password });
+                        }
+                    }
+                }
+
+                if (savedAccounts.length === 0) {
+                    dropdownList.innerHTML = '<div class="saved-account-item" style="color: #94a3b8;">No saved accounts found</div>';
+                } else {
+                    dropdownList.innerHTML = '';
+                    savedAccounts.forEach(acc => {
+                        const item = document.createElement('div');
+                        item.className = 'saved-account-item';
+                        item.innerText = acc.username;
+                        item.onclick = () => {
+                            usernameInput.value = acc.username;
+                            passwordInput.value = acc.password;
+                            dropdownList.style.display = 'none';
+                        };
+                        dropdownList.appendChild(item);
+                    });
+                }
+                dropdownList.style.display = dropdownList.style.display === 'block' ? 'none' : 'block';
+            });
+
+            document.addEventListener('click', () => {
+                dropdownList.style.display = 'none';
+            });
+        }
+
+        setupSavedAccountsDropdown('royal');
+        setupSavedAccountsDropdown('aston');
+        setupSavedAccountsDropdown('admin');
+
+        function setupLogin(systemName, targetPage, expectedSystemType, isAdmin = false) {
+            document.getElementById(systemName + 'ProceedBtn').onclick = async () => {
+                const username = document.getElementById(systemName + 'UsernameInput').value.trim();
+                const password = document.getElementById(systemName + 'PasswordInput').value.trim();
+                const rememberMe = document.getElementById(systemName + 'Remember').checked;
+                const errorMsg = document.getElementById(systemName + 'ErrorMsg');
+
+                errorMsg.innerText = "";
+                if (!username || !password) { errorMsg.innerText = "Enter username & password!"; return; }
+
+                let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
+                let adminCreds = JSON.parse(localStorage.getItem('ADMIN_CREDENTIALS')) || { username: 'admin', password: '0473', pin: '73' };
+
+                let savedAccounts = JSON.parse(localStorage.getItem(systemName + '_SAVED_ACCOUNTS')) || [];
+                if (rememberMe) {
+                    let existingIndex = savedAccounts.findIndex(acc => acc.username === username);
+                    if (existingIndex > -1) {
+                        savedAccounts[existingIndex].password = password;
+                    } else {
+                        savedAccounts.push({ username, password });
+                    }
+                    localStorage.setItem(systemName + '_SAVED_ACCOUNTS', JSON.stringify(savedAccounts));
+                }
+
+                if (isAdmin) {
+                    let firebaseSuccess = false;
+                    try {
+                        if (username.includes('@') && window.firebaseAuth) {
+                            await window.firebaseAuth.signInWithEmailAndPassword(window.firebaseAuth.auth, username, password);
+                            firebaseSuccess = true;
+                        }
+                    } catch (e) {
+                        console.log("Firebase login fallback to local");
+                    }
+
+                    if (!firebaseSuccess && (username !== adminCreds.username || password !== adminCreds.password)) { 
+                        errorMsg.innerText = "Invalid Admin credentials!"; 
+                        return; 
+                    }
+                    
+                    localStorage.setItem('LOGGED_IN_STAFF_NAME', username.toUpperCase());
+                    document.getElementById(systemName + 'CredentialsForm').style.display = 'none';
+                    document.getElementById(systemName + 'PinArea').style.display = 'block';
+
+                    generatePinGrid(systemName + 'PinGrid', adminCreds.pin || '73', (pin) => {
+                        if(pin === (adminCreds.pin || '73')) {
+                            // абсолютный পাথ বা সরাসরি টার্গেট পেজে রিডাইরেক্ট নিশ্চিত করা
+                            window.location.href = window.location.origin + '/' + targetPage;
+                        } else {
+                            document.getElementById(systemName + 'PinErrorMsg').innerText = "Incorrect PIN!";
+                        }
+                    });
+                } else {
+                    let isValid = false;
+                    let correctPin = '73';
+
+                    let matchedUserKey = Object.keys(customUsers).find(key => key.toLowerCase() === username.toLowerCase());
+
+                    if (matchedUserKey && customUsers[matchedUserKey].password === password) {
+                        let uData = customUsers[matchedUserKey];
+                        if (uData.system === expectedSystemType || 
+                            (expectedSystemType === 'royal' && (uData.system === 'pnr' || uData.system === 'accounts'))) {
+                            isValid = true;
+                            correctPin = uData.pin || '73';
+                        } else {
+                            errorMsg.innerText = "Access Denied for this portal!";
+                            return;
+                        }
+                    }
+
+                    if (!isValid) {
+                        try {
+                            if (username.includes('@') && window.firebaseAuth) {
+                                await window.firebaseAuth.signInWithEmailAndPassword(window.firebaseAuth.auth, username, password);
+                                isValid = true;
+                            }
+                        } catch (e) {}
+                    }
+
+                    if (!isValid) { 
+                        errorMsg.innerText = "Invalid credentials!"; 
+                        return; 
+                    }
+
+                    localStorage.setItem('LOGGED_IN_STAFF_NAME', username.toUpperCase());
+                    document.getElementById(systemName + 'CredentialsForm').style.display = 'none';
+                    document.getElementById(systemName + 'PinArea').style.display = 'block';
+
+                    generatePinGrid(systemName + 'PinGrid', correctPin, (pin) => {
+                        if(pin === correctPin) {
+                            // абсолютный পাথ বা সরাসরি টার্গেট পেজে রিডাইরেক্ট নিশ্চিত করা
+                            window.location.href = window.location.origin + '/' + targetPage;
+                        } else {
+                            document.getElementById(systemName + 'PinErrorMsg').innerText = "Incorrect PIN!";
+                        }
+                    });
+                }
+            };
+        }
+
+        setupLogin('royal', 'royal.html', 'royal', false);
+        setupLogin('aston', 'aston.html', 'aston', false);
+        setupLogin('admin', 'admin.html', '', true);
+
+        function generatePinGrid(gridId, correctPin, clickHandler) {
+            const gridContainer = document.getElementById(gridId);
+            gridContainer.innerHTML = '';
+            let pins = [correctPin, '12', '45', '89', '23', '67', '34', '56', '90'];
+            pins = [...new Set(pins)];
+            pins.sort(() => Math.random() - 0.5);
+            pins.forEach(pin => {
+                const box = document.createElement('div');
+                box.className = 'pin-box';
+                box.innerText = pin;
+                box.onclick = () => clickHandler(pin);
+                gridContainer.appendChild(box);
+            });
+        }
+    </script>
+</body>
+</html>
