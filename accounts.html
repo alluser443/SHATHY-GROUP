@@ -20,6 +20,8 @@
         h2.app-title { margin: 0; color: #1e3a8a; font-size: 22px; }
         .btn-back { background-color: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
         .btn-back:hover { background-color: #1d4ed8; }
+        .btn-login { background-color: #16a34a; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-login:hover { background-color: #15803d; }
         .btn-logout { background-color: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
         .btn-logout:hover { background-color: #b91c1c; }
 
@@ -62,7 +64,7 @@
 <div class="container">
     <div class="header-flex">
         <h2 class="app-title">📊 Daily Income & Expense Accounts Summary</h2>
-        <div id="headerActionBtn"></div>
+        <div id="headerActionBtn" style="display: flex; gap: 8px; align-items: center;"></div>
     </div>
 
     <!-- Month Filter Bar for Backup & Historical Review -->
@@ -132,12 +134,23 @@
     const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
     const actionBtnContainer = document.getElementById('headerActionBtn');
     
+    // হেডার বাটনের ডাইনামিক রেন্ডারিং (অ্যাডমিন হলে 'Back to Admin' এবং 'Logout' একসাথে পাশাপাশি দেখাবে)
+    let headerHTML = '';
     if (isAdmin) {
-        actionBtnContainer.innerHTML = '<a href="admin.html" class="btn-back">🔙 Back to Admin</a>';
+        headerHTML += '<a href="admin.html" class="btn-back">🔙 Back to Admin</a>';
+        headerHTML += '<button class="btn-logout" id="dynamicLogoutBtn">🚪 Logout</button>';
     } else {
-        actionBtnContainer.innerHTML = '<button class="btn-logout" id="dynamicLogoutBtn">🚪 Logout</button>';
-        document.getElementById('dynamicLogoutBtn').onclick = () => {
-            if (confirm("Are you sure you want to logout?")) window.location.href = 'login.html';
+        headerHTML += '<a href="login.html" class="btn-login">🔑 Login</a>';
+    }
+    actionBtnContainer.innerHTML = headerHTML;
+
+    const logoutBtn = document.getElementById('dynamicLogoutBtn');
+    if (logoutBtn) {
+        logoutBtn.onclick = () => {
+            if (confirm("Are you sure you want to logout?")) {
+                localStorage.removeItem('isAdminLoggedIn');
+                window.location.href = 'login.html';
+            }
         };
     }
 

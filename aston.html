@@ -20,8 +20,8 @@
         h2.app-title { margin: 0; color: #1e3a8a; font-size: 22px; font-weight: 700; }
         .btn-logout { background-color: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; transition: 0.2s; }
         .btn-logout:hover { background-color: #b91c1c; }
-        .btn-back { background-color: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-block; box-shadow: 0 2px 4px rgba(59,130,246,0.3); }
-        .btn-back:hover { background-color: #2563eb; }
+        .btn-back { background-color: #475569; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-block; box-shadow: 0 2px 4px rgba(71,85,105,0.3); }
+        .btn-back:hover { background-color: #334155; }
 
         .section-title { font-size: 15px; font-weight: bold; color: #1e3a8a; margin-top: 18px; margin-bottom: 10px; border-bottom: 2px solid #93c5fd; padding-bottom: 5px; }
         .folder-bar { background: #f0f4f8; border: 1px solid #cbd5e1; padding: 12px 18px; border-radius: 8px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
@@ -321,8 +321,8 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAE9rSoeTwCUgfrJ2QOlibuBClF2_M0hkw",
@@ -348,27 +348,27 @@
     let ADMIN_PASS = localStorage.getItem('ASTON_RECEIPT_PIN') || '0473';
 
     let loggedInUser = localStorage.getItem('LOGGED_IN_STAFF_NAME') || localStorage.getItem('currentUser') || 'NUR AHAMMED';
-    let userRole = localStorage.getItem('USER_ROLE') || localStorage.getItem('role') || 'admin';
+    let userRole = localStorage.getItem('USER_ROLE') || localStorage.getItem('role') || '';
     let isAdminStored = localStorage.getItem('isAdminLoggedIn') === 'true';
 
     const actionBtnContainer = document.getElementById('headerActionBtn');
-    const isAdmin = isAdminStored || 
-                    (loggedInUser && loggedInUser.toLowerCase() === 'admin') || 
-                    (userRole && userRole.toLowerCase() === 'admin');
+    
+    const isAdmin = isAdminStored || (userRole && userRole.toLowerCase() === 'admin');
 
     if (isAdmin) {
-        actionBtnContainer.innerHTML = '<a href="index.html" class="btn-back">Back to Portal</a>';
+        actionBtnContainer.innerHTML = '<a href="admin.html" class="btn-back">Back to Admin</a> <button class="btn-logout" id="dynamicLogoutBtn" style="margin-left: 8px;">Logout</button>';
     } else {
         actionBtnContainer.innerHTML = '<button class="btn-logout" id="dynamicLogoutBtn">Logout</button>';
-        const logoutBtn = document.getElementById('dynamicLogoutBtn');
-        if(logoutBtn) {
-            logoutBtn.onclick = () => {
-                if (confirm("Are you sure you want to logout?")) {
-                    localStorage.clear();
-                    window.location.href = 'index.html';
-                }
-            };
-        }
+    }
+
+    const logoutBtn = document.getElementById('dynamicLogoutBtn');
+    if(logoutBtn) {
+        logoutBtn.onclick = () => {
+            if (confirm("Are you sure you want to logout?")) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        };
     }
 
     let savedInvoicesList = JSON.parse(localStorage.getItem('ASTON_INVOICES_STORE')) || [];

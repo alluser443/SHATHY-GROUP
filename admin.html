@@ -160,7 +160,7 @@
                     <label>Password:</label>
                     <div style="position:relative;">
                         <input type="password" id="newPassword" placeholder="Password">
-                        <span onclick="togglePasswordVisibility('newPassword', this)" style="position:absolute; right:10px; top:9px; cursor:pointer; font-size:14px;">👁️</span>
+                        <span onclick="togglePasswordVisibility('newPassword', this)" style="position:absolute; right:10px; top:9px; cursor:pointer; font-size:14px;">👁</span>
                     </div>
 
                     <label>2-Digit Quick PIN:</label>
@@ -265,11 +265,6 @@
         const db = firebase.database();
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
-                window.location.href = 'index.html';
-                return;
-            }
-
             const overlay = document.getElementById('welcomeOverlay');
             if (sessionStorage.getItem('admin_welcome_shown')) {
                 if (overlay) overlay.style.display = 'none';
@@ -287,7 +282,7 @@
         document.getElementById('logoutBtn').onclick = () => {
             localStorage.removeItem('isAdminLoggedIn');
             sessionStorage.removeItem('admin_welcome_shown');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
         };
 
         function openModule(page) {

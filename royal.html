@@ -320,27 +320,27 @@
     let ADMIN_PASS = localStorage.getItem('ROYAL_RECEIPT_PIN') || '0473';
 
     let loggedInUser = localStorage.getItem('LOGGED_IN_STAFF_NAME') || localStorage.getItem('currentUser') || 'NUR AHAMMED';
-    let userRole = localStorage.getItem('USER_ROLE') || localStorage.getItem('role') || 'admin';
+    let userRole = localStorage.getItem('USER_ROLE') || localStorage.getItem('role') || '';
     let isAdminStored = localStorage.getItem('isAdminLoggedIn') === 'true';
 
     const actionBtnContainer = document.getElementById('headerActionBtn');
-    const isAdmin = isAdminStored || 
-                    (loggedInUser && loggedInUser.toLowerCase() === 'admin') || 
-                    (userRole && userRole.toLowerCase() === 'admin');
+    
+    const isAdmin = isAdminStored || (userRole && userRole.toLowerCase() === 'admin');
 
     if (isAdmin) {
-        actionBtnContainer.innerHTML = '<a href="index.html" class="btn-back">Back to Portal</a>';
+        actionBtnContainer.innerHTML = '<a href="admin.html" class="btn-back">Back to Admin</a> <button class="btn-logout" id="dynamicLogoutBtn" style="margin-left: 8px;">Logout</button>';
     } else {
         actionBtnContainer.innerHTML = '<button class="btn-logout" id="dynamicLogoutBtn">Logout</button>';
-        const logoutBtn = document.getElementById('dynamicLogoutBtn');
-        if(logoutBtn) {
-            logoutBtn.onclick = () => {
-                if (confirm("Are you sure you want to logout?")) {
-                    localStorage.clear();
-                    window.location.href = 'index.html';
-                }
-            };
-        }
+    }
+
+    const logoutBtn = document.getElementById('dynamicLogoutBtn');
+    if(logoutBtn) {
+        logoutBtn.onclick = () => {
+            if (confirm("Are you sure you want to logout?")) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        };
     }
 
     let savedInvoicesList = JSON.parse(localStorage.getItem('ROYAL_INVOICES_STORE')) || [];
