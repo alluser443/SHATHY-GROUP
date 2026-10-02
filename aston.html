@@ -356,7 +356,7 @@
     const isAdmin = isAdminStored || (userRole && userRole.toLowerCase() === 'admin');
 
     if (isAdmin) {
-        actionBtnContainer.innerHTML = '<a href="admin.html" class="btn-back">Back to Admin</a> <button class="btn-logout" id="dynamicLogoutBtn" style="margin-left: 8px;">Logout</button>';
+        actionBtnContainer.innerHTML = '<a href="./admin.html" class="btn-back">Back to Admin</a> <button class="btn-logout" id="dynamicLogoutBtn" style="margin-left: 8px;">Logout</button>';
     } else {
         actionBtnContainer.innerHTML = '<button class="btn-logout" id="dynamicLogoutBtn">Logout</button>';
     }
@@ -366,7 +366,7 @@
         logoutBtn.onclick = () => {
             if (confirm("Are you sure you want to logout?")) {
                 localStorage.clear();
-                window.location.href = 'login.html';
+                window.location.href = './index.html';
             }
         };
     }

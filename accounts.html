@@ -134,13 +134,12 @@
     const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
     const actionBtnContainer = document.getElementById('headerActionBtn');
     
-    // হেডার বাটনের ডাইনামিক রেন্ডারিং (অ্যাডমিন হলে 'Back to Admin' এবং 'Logout' একসাথে পাশাপাশি দেখাবে)
     let headerHTML = '';
     if (isAdmin) {
-        headerHTML += '<a href="admin.html" class="btn-back">🔙 Back to Admin</a>';
+        headerHTML += '<a href="./admin.html" class="btn-back">🔙 Back to Admin</a>';
         headerHTML += '<button class="btn-logout" id="dynamicLogoutBtn">🚪 Logout</button>';
     } else {
-        headerHTML += '<a href="login.html" class="btn-login">🔑 Login</a>';
+        headerHTML += '<a href="./index.html" class="btn-login">🔑 Login</a>';
     }
     actionBtnContainer.innerHTML = headerHTML;
 
@@ -148,13 +147,12 @@
     if (logoutBtn) {
         logoutBtn.onclick = () => {
             if (confirm("Are you sure you want to logout?")) {
-                localStorage.removeItem('isAdminLoggedIn');
-                window.location.href = 'login.html';
+                localStorage.clear();
+                window.location.href = './index.html';
             }
         };
     }
 
-    // Auto set current date and initialize month filter to current month
     const today = new Date();
     document.getElementById('txDate').valueAsDate = today;
     
@@ -192,12 +190,11 @@
         const tbody = document.getElementById('accountsTableBody');
         tbody.innerHTML = '';
         
-        const selectedMonth = document.getElementById('filterMonth').value; // format: YYYY-MM
+        const selectedMonth = document.getElementById('filterMonth').value;
 
         let sumCarInc = 0, sumOtherInc = 0, sumCarExp = 0, sumTravel = 0, sumOffice = 0, sumFamily = 0, sumPersonal = 0;
 
         transactions.forEach((tx, index) => {
-            // Filter records based on selected month (YYYY-MM)
             if (selectedMonth && !tx.date.startsWith(selectedMonth)) {
                 return;
             }
@@ -266,7 +263,6 @@
         document.getElementById('calcProfit').value = '0.000 OMR';
         document.getElementById('txDesc').value = '';
         
-        // Keep date updated to current date for subsequent entries
         document.getElementById('txDate').valueAsDate = new Date();
         
         renderTransactions();

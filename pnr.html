@@ -53,73 +53,73 @@
         <div id="headerActionBtn" style="display: flex; gap: 8px; align-items: center;"></div>
     </div>
 
-    <div id="alertBanner">🚨 URGENT: Pending PNR Time Limit or Flight Check-In requires your action!</div>
+    <div id="alertBanner">🚨 URGENT: Pending PNR Time Limit or Flight Check-In requires your action![cite: 11]</div>
 
     <div class="form-container">
-        <div class="section-title">Add New Tracking Item</div>
+        <div class="section-title">Add New Tracking Item[cite: 11]</div>
         <div class="form-grid">
             <div class="form-group"><label>Tracker Type:</label>
                 <select id="trackerType" onchange="toggleFormFields()">
-                    <option value="HOLD">On-Hold PNR (Time Limit)</option>
-                    <option value="CHECKIN">Online Check-In Reminder</option>
+                    <option value="HOLD">On-Hold PNR (Time Limit)[cite: 11]</option>
+                    <option value="CHECKIN">Online Check-In Reminder[cite: 11]</option>
                 </select>
             </div>
-            <div class="form-group"><label>Passenger Name:</label><input type="text" id="paxName" placeholder="Passenger Name"></div>
-            <div class="form-group"><label>PNR Number:</label><input type="text" id="pnrNo" placeholder="PNR Code"></div>
-            <div class="form-group"><label>Passport No & Expiry:</label><input type="text" id="passportInfo" placeholder="A1234567 / 2028-10-12"></div>
-            <div class="form-group"><label>Contact / Phone:</label><input type="text" id="contactNo" placeholder="+968 XXXXXXXX"></div>
+            <div class="form-group"><label>Passenger Name:</label><input type="text" id="paxName" placeholder="Passenger Name"[cite: 11]></div>
+            <div class="form-group"><label>PNR Number:</label><input type="text" id="pnrNo" placeholder="PNR Code"[cite: 11]></div>
+            <div class="form-group"><label>Passport No & Expiry:</label><input type="text" id="passportInfo" placeholder="A1234567 / 2028-10-12"[cite: 11]></div>
+            <div class="form-group"><label>Contact / Phone:</label><input type="text" id="contactNo" placeholder="+968 XXXXXXXX"[cite: 11]></div>
             
             <!-- On-Hold Fields -->
             <div class="form-group" id="timeLimitGroup">
-                <label>PNR Time Limit (Expiry):</label><input type="datetime-local" id="timeLimit">
+                <label>PNR Time Limit (Expiry):</label><input type="datetime-local" id="timeLimit"[cite: 11]>
             </div>
             <div class="form-group" id="reminderHoursGroup">
                 <label>Alert Before (Hours):</label>
-                <input type="number" id="alertBeforeHours" value="2" min="1" max="72" placeholder="e.g. 2, 3, 4">
+                <input type="number" id="alertBeforeHours" value="2" min="1" max="72" placeholder="e.g. 2, 3, 4"[cite: 11]>
             </div>
             <div class="form-group" id="holdIntervalGroup">
                 <label>Repeat Interval (Minutes):</label>
-                <input type="number" id="holdIntervalMins" value="2" min="1" max="60" placeholder="e.g. 2">
+                <input type="number" id="holdIntervalMins" value="2" min="1" max="60" placeholder="e.g. 2"[cite: 11]>
             </div>
             <div class="form-group" id="holdSoundGroup">
                 <label>On-Hold Alert Sound & Voice:</label>
                 <select id="holdSoundType">
-                    <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3|Please confirm your on-hold ticket">Digital Beep + "Please confirm your on-hold ticket"</option>
-                    <option value="https://assets.mixkit.co/active_storage/sfx/1002/1002-preview.mp3|Please confirm or cancel your ticket immediately">Urgent Alert + "Please confirm or cancel your ticket"</option>
-                    <option value="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3|Attention! PNR time limit is ending soon">Classic Bell + "Attention! PNR time limit is ending soon"</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3|Please confirm your on-hold ticket">Digital Beep + "Please confirm your on-hold ticket"[cite: 11]</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/1002/1002-preview.mp3|Please confirm or cancel your ticket immediately">Urgent Alert + "Please confirm or cancel your ticket"[cite: 11]</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3|Attention! PNR time limit is ending soon">Classic Bell + "Attention! PNR time limit is ending soon"[cite: 11]</option>
                 </select>
-                <button type="button" class="btn-test" onclick="testSound('holdSoundType')">🔊 Test Sound & Voice</button>
+                <button type="button" class="btn-test" onclick="testSound('holdSoundType')">🔊 Test Sound & Voice[cite: 11]</button>
             </div>
 
             <!-- Check-In Fields -->
             <div class="form-group" id="depTimeGroup" style="display:none;">
-                <label>Flight Departure Time:</label><input type="datetime-local" id="depTime">
+                <label>Flight Departure Time:</label><input type="datetime-local" id="depTime"[cite: 11]>
             </div>
             <div class="form-group" id="checkinAlertHoursGroup" style="display:none;">
                 <label>Alert Before (Hours):</label>
-                <input type="number" id="checkinAlertBeforeHours" value="24" min="1" max="72" placeholder="e.g. 24">
+                <input type="number" id="checkinAlertBeforeHours" value="24" min="1" max="72" placeholder="e.g. 24"[cite: 11]>
             </div>
             <div class="form-group" id="checkinIntervalGroup" style="display:none;">
                 <label>Repeat Interval (Minutes):</label>
-                <input type="number" id="checkinIntervalMins" value="2" min="1" max="60" placeholder="e.g. 2">
+                <input type="number" id="checkinIntervalMins" value="2" min="1" max="60" placeholder="e.g. 2"[cite: 11]>
             </div>
             <div class="form-group" id="checkinSoundGroup" style="display:none;">
                 <label>Check-In Alert Sound & Voice:</label>
                 <select id="checkinSoundType">
-                    <option value="https://assets.mixkit.co/active_storage/sfx/2867/2867-preview.mp3|Please make your online check in">Soft Chime + "Please make your online check in"</option>
-                    <option value="https://assets.mixkit.co/active_storage/sfx/2293/2293-preview.mp3|Reminder! Complete your flight check in now">Friendly Ping + "Reminder! Complete your flight check in"</option>
-                    <option value="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3|Attention! Online check in window is open">Radar Beep + "Attention! Online check in window is open"</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2867/2867-preview.mp3|Please make your online check in">Soft Chime + "Please make your online check in"[cite: 11]</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2293/2293-preview.mp3|Reminder! Complete your flight check in now">Friendly Ping + "Reminder! Complete your flight check in"[cite: 11]</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3|Attention! Online check in window is open">Radar Beep + "Attention! Online check in window is open"[cite: 11]</option>
                 </select>
-                <button type="button" class="btn-test" onclick="testSound('checkinSoundType')">🔊 Test Sound & Voice</button>
+                <button type="button" class="btn-test" onclick="testSound('checkinSoundType')">🔊 Test Sound & Voice[cite: 11]</button>
             </div>
         </div>
         <div class="btn-group">
-            <button class="btn btn-primary" id="saveTrackerBtn">Save & Start Tracking</button>
+            <button class="btn btn-primary" id="saveTrackerBtn">Save & Start Tracking[cite: 11]</button>
         </div>
     </div>
 
     <!-- Table 1 -->
-    <div class="section-title" style="color: #b45309;">📋 On-Hold PNR (Time Limit Tracking)</div>
+    <div class="section-title" style="color: #b45309;">📋 On-Hold PNR (Time Limit Tracking)[cite: 11]</div>
     <div style="overflow-x: auto; margin-bottom: 25px;">
         <table class="table-box">
             <thead>
@@ -132,7 +132,7 @@
     </div>
 
     <!-- Table 2 -->
-    <div class="section-title" style="color: #1e3a8a;">📋 Online Check-In Reminder Tracking</div>
+    <div class="section-title" style="color: #1e3a8a;">📋 Online Check-In Reminder Tracking[cite: 11]</div>
     <div style="overflow-x: auto;">
         <table class="table-box">
             <thead>
@@ -149,13 +149,12 @@
     const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
     const actionBtnContainer = document.getElementById('headerActionBtn');
     
-    // হেডার বাটনের ডাইনামিক রেন্ডারিং (অ্যাডমিন হলে 'Back to Admin' এবং 'Logout' একসাথে দেখাবে)
     let headerHTML = '';
     if (isAdmin) {
-        headerHTML += '<a href="admin.html" class="btn-back">🔙 Back to Admin</a>';
+        headerHTML += '<a href="./admin.html" class="btn-back">🔙 Back to Admin</a>';
         headerHTML += '<button class="btn-logout" id="dynamicLogoutBtn">🚪 Logout</button>';
     } else {
-        headerHTML += '<a href="login.html" class="btn-login">🔑 Login</a>';
+        headerHTML += '<a href="./index.html" class="btn-login">🔑 Login</a>';
     }
     actionBtnContainer.innerHTML = headerHTML;
 
@@ -163,8 +162,8 @@
     if (logoutBtn) {
         logoutBtn.onclick = () => {
             if (confirm("Are you sure you want to logout?")) {
-                localStorage.removeItem('isAdminLoggedIn');
-                window.location.href = 'login.html';
+                localStorage.clear();
+                window.location.href = './index.html';
             }
         };
     }

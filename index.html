@@ -286,7 +286,7 @@
 
                     generatePinGrid(systemName + 'PinGrid', adminCreds.pin || '73', (pin) => {
                         if(pin === (adminCreds.pin || '73')) {
-                            window.location.href = targetPage;
+                            window.location.href = './' + targetPage;
                         } else {
                             document.getElementById(systemName + 'PinErrorMsg').innerText = "Incorrect PIN!";
                         }
@@ -329,7 +329,7 @@
 
                     generatePinGrid(systemName + 'PinGrid', correctPin, (pin) => {
                         if(pin === correctPin) {
-                            window.location.href = targetPage;
+                            window.location.href = './' + targetPage;
                         } else {
                             document.getElementById(systemName + 'PinErrorMsg').innerText = "Incorrect PIN!";
                         }
