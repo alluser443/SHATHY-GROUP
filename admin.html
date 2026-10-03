@@ -282,7 +282,7 @@
         document.getElementById('logoutBtn').onclick = () => {
             localStorage.removeItem('isAdminLoggedIn');
             sessionStorage.removeItem('admin_welcome_shown');
-            window.location.href = './index.html';
+            window.location.href = 'index.html';
         };
 
         function openModule(page) {
@@ -442,10 +442,10 @@
             document.getElementById('msg').innerText = "Account created and synced successfully!";
             setTimeout(() => document.getElementById('msg').innerText = '', 3000);
 
-            document.getElementById('fullName').value = '';
-            document.getElementById('newUsername').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('newQuickPin').value = '';
+            document.getElementById('fullName').value = ' ';
+            document.getElementById('newUsername').value = ' ';
+            document.getElementById('newPassword').value = ' ';
+            document.getElementById('newQuickPin').value = ' ';
 
             loadStaffDirectories();
         };
