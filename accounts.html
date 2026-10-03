@@ -67,7 +67,6 @@
         <div id="headerActionBtn" style="display: flex; gap: 8px; align-items: center;"></div>
     </div>
 
-    <!-- Month Filter Bar for Backup & Historical Review -->
     <div class="filter-bar no-print">
         <label>Select Month to View/Print Summary:</label>
         <input type="month" id="filterMonth" onchange="renderTransactions()">
@@ -130,7 +129,18 @@
     </div>
 </div>
 
-<script>
+<!-- Firebase SDKs -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+        databaseURL: "https://royal-inbi-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
     const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
     const actionBtnContainer = document.getElementById('headerActionBtn');
     
@@ -159,14 +169,14 @@
     const currentYearMonth = today.toISOString().slice(0, 7);
     document.getElementById('filterMonth').value = currentYearMonth;
 
-    let transactions = JSON.parse(localStorage.getItem('SHATHY_ACCOUNTS')) || [];
+    let transactions = [];
 
-    function resetMonthFilter() {
+    window.resetMonthFilter = function() {
         document.getElementById('filterMonth').value = new Date().toISOString().slice(0, 7);
         renderTransactions();
-    }
+    };
 
-    function checkCategorySelection() {
+    window.checkCategorySelection = function() {
         const cat = document.getElementById('txCategory').value;
         const ticketBox = document.getElementById('ticketExtraBox');
         const stdAmountGroup = document.getElementById('standardAmountGroup');
@@ -177,14 +187,14 @@
             ticketBox.style.display = 'none';
             stdAmountGroup.style.display = 'flex';
         }
-    }
+    };
 
-    function calculateTicketProfit() {
+    window.calculateTicketProfit = function() {
         const net = parseFloat(document.getElementById('netFare').value) || 0;
         const pub = parseFloat(document.getElementById('pubFare').value) || 0;
         const profit = pub - net;
         document.getElementById('calcProfit').value = profit.toFixed(3) + ' OMR';
-    }
+    };
 
     function renderTransactions() {
         const tbody = document.getElementById('accountsTableBody');
@@ -194,7 +204,7 @@
 
         let sumCarInc = 0, sumOtherInc = 0, sumCarExp = 0, sumTravel = 0, sumOffice = 0, sumFamily = 0, sumPersonal = 0;
 
-        transactions.forEach((tx, index) => {
+        transactions.forEach((tx) => {
             if (selectedMonth && !tx.date.startsWith(selectedMonth)) {
                 return;
             }
@@ -214,7 +224,7 @@
                 <td><strong>${tx.category}</strong> ${tx.netFare ? `<br><small style="color:#64748b;">(Net: ${tx.netFare} \vert{} Pub:${tx.pubFare})</small>` : ''}</td>
                 <td>${tx.desc}</td>
                 <td style="color: ${isIncome ? '#16a34a' : '#dc2626'}; font-weight: bold;">${isIncome ? '+' : '-'}${tx.amount.toFixed(3)} OMR</td>
-                <td class="no-print"><button onclick="deleteTx(${index})" style="background:#dc2626; color:#fff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer;">Delete</button></td>
+                <td class="no-print"><button onclick="deleteTx('${tx.id}')" style="background:#dc2626; color:#fff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer;">Delete</button></td>
             `;
             tbody.appendChild(row);
         });
@@ -233,9 +243,20 @@
         const netEl = document.getElementById('netProfit');
         netEl.innerText = net.toFixed(3) + ' OMR';
         netEl.style.color = net >= 0 ? '#0369a1' : '#dc2626';
-
-        localStorage.setItem('SHATHY_ACCOUNTS', JSON.stringify(transactions));
     }
+
+    const txRef = ref(db, 'accounts_transactions');
+    onValue(txRef, (snapshot) => {
+        const data = snapshot.val();
+        transactions = [];
+        if (data) {
+            Object.keys(data).forEach(key => {
+                transactions.push({ id: key, ...data[key] });
+            });
+            transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+        renderTransactions();
+    });
 
     document.getElementById('addTxBtn').onclick = () => {
         const date = document.getElementById('txDate').value;
@@ -256,26 +277,28 @@
 
         if(!date) { alert('Please select date!'); return; }
 
-        transactions.push({ date, category, amount, desc, netFare, pubFare });
-        document.getElementById('txAmount').value = '';
-        document.getElementById('netFare').value = '';
-        document.getElementById('pubFare').value = '';
-        document.getElementById('calcProfit').value = '0.000 OMR';
-        document.getElementById('txDesc').value = '';
-        
-        document.getElementById('txDate').valueAsDate = new Date();
-        
-        renderTransactions();
+        push(txRef, { date, category, amount, desc, netFare, pubFare })
+            .then(() => {
+                document.getElementById('txAmount').value = '';
+                document.getElementById('netFare').value = '';
+                document.getElementById('pubFare').value = '';
+                document.getElementById('calcProfit').value = '0.000 OMR';
+                document.getElementById('txDesc').value = '';
+                document.getElementById('txDate').valueAsDate = new Date();
+            })
+            .catch((error) => {
+                alert('Error adding transaction: ' + error.message);
+            });
     };
 
-    function deleteTx(index) {
+    window.deleteTx = function(id) {
         if(confirm('Are you sure to delete this transaction?')) {
-            transactions.splice(index, 1);
-            renderTransactions();
+            const singleTxRef = ref(db, 'accounts_transactions/' + id);
+            remove(singleTxRef).catch((error) => {
+                alert('Error deleting transaction: ' + error.message);
+            });
         }
-    }
-
-    window.onload = renderTransactions;
+    };
 </script>
 </body>
 </html>

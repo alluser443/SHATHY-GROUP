@@ -113,8 +113,8 @@
     <div class="form-container no-print">
         <div class="section-title">1. Invoice Details & Passenger Info</div>
         <div class="folder-bar">
-            <div><strong>Cloud Status:</strong> <span style="color: #16a34a; font-weight: bold;">Connected & Active (Firebase)</span></div>
-            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncInvoicesFromCloud()">Sync from Cloud</button>
+            <div><strong>Cloud Status:</strong> <span style="color: #16a34a; font-weight: bold;">Connected & Live Sync Active</span></div>
+            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncInvoicesFromCloud()">Force Sync</button>
         </div>
 
         <div class="form-grid">
@@ -294,7 +294,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAE9rSoeTwCUgfrJ2QOlibuBClF2_M0hkw",
@@ -310,7 +310,7 @@
     try {
         const firebaseApp = initializeApp(firebaseConfig);
         const db = getFirestore(firebaseApp);
-        window.firebaseDB = { db, collection, addDoc, getDocs };
+        window.firebaseDB = { db, collection, addDoc, getDocs, onSnapshot };
     } catch(e) {
         console.log("Firebase init notice:", e);
     }
@@ -324,7 +324,6 @@
     let isAdminStored = localStorage.getItem('isAdminLoggedIn') === 'true';
 
     const actionBtnContainer = document.getElementById('headerActionBtn');
-    
     const isAdmin = isAdminStored || (userRole && userRole.toLowerCase() === 'admin');
 
     if (isAdmin) {
@@ -344,6 +343,46 @@
     }
 
     let savedInvoicesList = JSON.parse(localStorage.getItem('ROYAL_INVOICES_STORE')) || [];
+
+    // Real-time Cloud Firestore Listener (Live Sync)
+    function initRealtimeSync() {
+        if (!window.firebaseDB || !window.firebaseDB.db) {
+            setTimeout(initRealtimeSync, 1000);
+            return;
+        }
+        try {
+            window.firebaseDB.onSnapshot(window.firebaseDB.collection(window.firebaseDB.db, "invoices"), (snapshot) => {
+                let cloudInvoices = [];
+                snapshot.forEach((doc) => {
+                    cloudInvoices.push(doc.data());
+                });
+                if (cloudInvoices.length > 0) {
+                    savedInvoicesList = cloudInvoices.map(item => ({
+                        receiptNo: item.invoiceNo || item.receiptNo,
+                        date: item.date || 'N/A',
+                        paxName: item.clientName || item.paxName,
+                        pnrNo: item.pnrNo,
+                        contactNo: item.contactNo || 'N/A',
+                        email: item.email || 'N/A',
+                        ticketCost: item.ticketCost || '0.000',
+                        vatRate: item.vatRate || '0.00',
+                        vatAmount: item.vatAmount || '0.000',
+                        paymentMethod: item.paymentMethod || 'Bank Transfer',
+                        grandTotal: item.totalAmount || item.grandTotal,
+                        remarks: item.remarks || 'N/A',
+                        issuedBy: item.issuedBy,
+                        isNonRefundable: item.isNonRefundable || false,
+                        stampSrc: item.stampSrc || '',
+                        sigSrc: item.sigSrc || ''
+                    }));
+                    localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
+                    renderHistoryTable();
+                }
+            });
+        } catch (e) {
+            console.error("Realtime sync setup error:", e);
+        }
+    }
 
     async function syncInvoicesFromCloud() {
         if (!window.firebaseDB || !window.firebaseDB.db) {
@@ -408,6 +447,7 @@
 
         renderHistoryTable();
         updateCalculationsAndPreview();
+        initRealtimeSync(); // রিয়েল-টাইম লাইভ সিঙ্ক চালু করা হলো
 
         const updateSaveBtn = document.getElementById('updateSaveBtn');
         if(updateSaveBtn) updateSaveBtn.addEventListener('click', () => processInvoice('updateAndSave'));
@@ -556,21 +596,6 @@
                 sigSrc: document.getElementById('dispSig')?.src || ''
             };
 
-            savedInvoicesList.unshift(invoiceData);
-            localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
-            renderHistoryTable();
-
-            let currentCounter = parseInt(document.getElementById('receiptCounter')?.value) || 216;
-            let nextCounter = currentCounter + 1;
-            localStorage.setItem('ROYAL_RECEIPT_COUNTER', nextCounter);
-
-            const inputField = document.getElementById('receiptCounter');
-            if(inputField) {
-                inputField.value = nextCounter;
-                inputField.setAttribute('readonly', true);
-                inputField.style.backgroundColor = '#e2e8f0';
-            }
-
             try {
                 if (window.firebaseDB && window.firebaseDB.db) {
                     await window.firebaseDB.addDoc(window.firebaseDB.collection(window.firebaseDB.db, "invoices"), {
@@ -595,6 +620,21 @@
                 }
             } catch (e) {
                 console.error("Cloud sync error:", e);
+            }
+
+            savedInvoicesList.unshift(invoiceData);
+            localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
+            renderHistoryTable();
+
+            let currentCounter = parseInt(document.getElementById('receiptCounter')?.value) || 216;
+            let nextCounter = currentCounter + 1;
+            localStorage.setItem('ROYAL_RECEIPT_COUNTER', nextCounter);
+
+            const inputField = document.getElementById('receiptCounter');
+            if(inputField) {
+                inputField.value = nextCounter;
+                inputField.setAttribute('readonly', true);
+                inputField.style.backgroundColor = '#e2e8f0';
             }
 
             alert('Invoice updated and saved successfully to Store & Cloud!');

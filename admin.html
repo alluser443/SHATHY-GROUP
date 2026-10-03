@@ -272,10 +272,37 @@
                 sessionStorage.setItem('admin_welcome_shown', 'true');
             }
 
+            // Real-time synchronization for users, admin credentials, and pins from Firebase
             db.ref('CUSTOM_PORTAL_USERS').on('value', (snapshot) => {
                 const firebaseUsers = snapshot.val() || {};
                 localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(firebaseUsers));
                 loadStaffDirectories();
+            });
+
+            db.ref('ADMIN_CREDENTIALS').on('value', (snapshot) => {
+                const creds = snapshot.val();
+                if (creds) {
+                    localStorage.setItem('ADMIN_CREDENTIALS', JSON.stringify(creds));
+                    loadStaffDirectories();
+                }
+            });
+
+            db.ref('ROYAL_RECEIPT_PIN').on('value', (snapshot) => {
+                const pin = snapshot.val();
+                if (pin) {
+                    localStorage.setItem('ROYAL_RECEIPT_PIN', pin);
+                    let royalInput = document.getElementById('royalReceiptPinInput');
+                    if (royalInput) royalInput.value = pin;
+                }
+            });
+
+            db.ref('ASTON_RECEIPT_PIN').on('value', (snapshot) => {
+                const pin = snapshot.val();
+                if (pin) {
+                    localStorage.setItem('ASTON_RECEIPT_PIN', pin);
+                    let astonInput = document.getElementById('astonReceiptPinInput');
+                    if (astonInput) astonInput.value = pin;
+                }
             });
         });
 
@@ -442,10 +469,10 @@
             document.getElementById('msg').innerText = "Account created and synced successfully!";
             setTimeout(() => document.getElementById('msg').innerText = '', 3000);
 
-            document.getElementById('fullName').value = ' ';
-            document.getElementById('newUsername').value = ' ';
-            document.getElementById('newPassword').value = ' ';
-            document.getElementById('newQuickPin').value = ' ';
+            document.getElementById('fullName').value = '';
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newQuickPin').value = '';
 
             loadStaffDirectories();
         };

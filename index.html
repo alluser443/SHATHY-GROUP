@@ -164,27 +164,59 @@
         </div>
     </div>
 
+    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyAE9rSoeTCUgfrJ2QOlibuBCIf2_M0hkw",
-            authDomain: "royal-holidays.firebaseapp.com",
-            databaseURL: "https://royal-holidays-default-rtdb.firebaseio.com",
-            projectId: "royal-holidays",
-            storageBucket: "royal-holidays.firebasestorage.app",
-            messagingSenderId: "470071653456",
-            appId: "1:470071653456:web:b10ca6a1e8c8dc9ac50d55",
-            measurementId: "G-VZCFTN70GJ"
+            databaseURL: "https://royal-inbi-default-rtdb.firebaseio.com/"
         };
 
-        const firebaseApp = initializeApp(firebaseConfig);
-        const auth = getAuth(firebaseApp);
-        const db = getFirestore(firebaseApp);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        window.firebaseAuth = { auth, signInWithEmailAndPassword, db, collection, addDoc };
+        window.firebaseDB = { db, ref, get, set, child };
+
+        // Global functions to verify users against Firebase Realtime Database
+        window.verifyFirebaseUser = async function(username, password, systemType) {
+            try {
+                const dbRef = ref(db);
+                // Check in system users or admin node
+                const snapshot = await get(child(dbRef, 'portal_users/' + username.replace(/[.#$\/\[\]]/g, "_")));
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.password === password) {
+                        return { success: true, pin: userData.pin || '73', system: userData.system };
+                    }
+                }
+                
+                // Default Master Admin fallback check
+                if (systemType === 'admin' && username === 'admin' && password === '0473') {
+                    return { success: true, pin: '73', system: 'admin' };
+                }
+
+                return { success: false };
+            } catch (err) {
+                console.error("Firebase Auth Error:", err);
+                return { success: false, error: err.message };
+            }
+        };
+
+        window.saveFirebaseUserRemember = async function(username, password, systemType) {
+            try {
+                const cleanKey = username.replace(/[.#$\/\[\]]/g, "_");
+                const userRef = ref(db, 'portal_users/' + cleanKey);
+                await set(userRef, {
+                    username: username,
+                    password: password,
+                    system: systemType,
+                    pin: '73'
+                });
+            } catch (e) {
+                console.log("Firebase sync save error:", e);
+            }
+        };
     </script>
 
     <script>
@@ -201,14 +233,6 @@
                     let adminCreds = JSON.parse(localStorage.getItem('ADMIN_CREDENTIALS')) || { username: 'admin', password: '0473' };
                     if (!savedAccounts.some(acc => acc.username === adminCreds.username)) {
                         savedAccounts.unshift({ username: adminCreds.username, password: adminCreds.password });
-                    }
-                } else {
-                    let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
-                    for (let uName in customUsers) {
-                        let uData = customUsers[uName];
-                        if (uData.system === systemName && !savedAccounts.some(acc => acc.username === uName)) {
-                            savedAccounts.push({ username: uName, password: uData.password });
-                        }
                     }
                 }
 
@@ -250,11 +274,46 @@
                 errorMsg.innerText = "";
                 if (!username || !password) { errorMsg.innerText = "Enter username & password!"; return; }
 
-                let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
-                let adminCreds = JSON.parse(localStorage.getItem('ADMIN_CREDENTIALS')) || { username: 'admin', password: '0473', pin: '73' };
+                let isValid = false;
+                let correctPin = '73';
 
-                let savedAccounts = JSON.parse(localStorage.getItem(systemName + '_SAVED_ACCOUNTS')) || [];
+                // First verify from Firebase Database live
+                if (window.verifyFirebaseUser) {
+                    let res = await window.verifyFirebaseUser(username, password, expectedSystemType || 'admin');
+                    if (res.success) {
+                        isValid = true;
+                        correctPin = res.pin;
+                    }
+                }
+
+                // Fallback to local storage credentials if offline or pre-configured
+                let adminCreds = JSON.parse(localStorage.getItem('ADMIN_CREDENTIALS')) || { username: 'admin', password: '0473', pin: '73' };
+                let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
+
+                if (!isValid) {
+                    if (isAdmin && username === adminCreds.username && password === adminCreds.password) {
+                        isValid = true;
+                        correctPin = adminCreds.pin || '73';
+                    } else if (!isAdmin) {
+                        let matchedUserKey = Object.keys(customUsers).find(key => key.toLowerCase() === username.toLowerCase());
+                        if (matchedUserKey && customUsers[matchedUserKey].password === password) {
+                            let uData = customUsers[matchedUserKey];
+                            if (uData.system === expectedSystemType || expectedSystemType === 'royal') {
+                                isValid = true;
+                                correctPin = uData.pin || '73';
+                            }
+                        }
+                    }
+                }
+
+                if (!isValid) {
+                    errorMsg.innerText = "Invalid credentials or access denied!";
+                    return;
+                }
+
+                // Remember me handling (Save to LocalStorage and Firebase Realtime Database)
                 if (rememberMe) {
+                    let savedAccounts = JSON.parse(localStorage.getItem(systemName + '_SAVED_ACCOUNTS')) || [];
                     let existingIndex = savedAccounts.findIndex(acc => acc.username === username);
                     if (existingIndex > -1) {
                         savedAccounts[existingIndex].password = password;
@@ -262,79 +321,25 @@
                         savedAccounts.push({ username, password });
                     }
                     localStorage.setItem(systemName + '_SAVED_ACCOUNTS', JSON.stringify(savedAccounts));
+
+                    if (window.saveFirebaseUserRemember) {
+                        window.saveFirebaseUserRemember(username, password, expectedSystemType || 'admin');
+                    }
                 }
 
-                if (isAdmin) {
-                    let firebaseSuccess = false;
-                    try {
-                        if (username.includes('@') && window.firebaseAuth) {
-                            await window.firebaseAuth.signInWithEmailAndPassword(window.firebaseAuth.auth, username, password);
-                            firebaseSuccess = true;
-                        }
-                    } catch (e) {
-                        console.log("Firebase login fallback to local");
+                localStorage.setItem('LOGGED_IN_STAFF_NAME', username.toUpperCase());
+                if(isAdmin) localStorage.setItem('isAdminLoggedIn', 'true');
+
+                document.getElementById(systemName + 'CredentialsForm').style.display = 'none';
+                document.getElementById(systemName + 'PinArea').style.display = 'block';
+
+                generatePinGrid(systemName + 'PinGrid', correctPin, (pin) => {
+                    if(pin === correctPin) {
+                        window.location.href = './' + targetPage;
+                    } else {
+                        document.getElementById(systemName + 'PinErrorMsg').innerText = "Incorrect PIN!";
                     }
-
-                    if (!firebaseSuccess && (username !== adminCreds.username || password !== adminCreds.password)) { 
-                        errorMsg.innerText = "Invalid Admin credentials!"; 
-                        return; 
-                    }
-                    
-                    localStorage.setItem('LOGGED_IN_STAFF_NAME', username.toUpperCase());
-                    document.getElementById(systemName + 'CredentialsForm').style.display = 'none';
-                    document.getElementById(systemName + 'PinArea').style.display = 'block';
-
-                    generatePinGrid(systemName + 'PinGrid', adminCreds.pin || '73', (pin) => {
-                        if(pin === (adminCreds.pin || '73')) {
-                            window.location.href = './' + targetPage;
-                        } else {
-                            document.getElementById(systemName + 'PinErrorMsg').innerText = "Incorrect PIN!";
-                        }
-                    });
-                } else {
-                    let isValid = false;
-                    let correctPin = '73';
-
-                    let matchedUserKey = Object.keys(customUsers).find(key => key.toLowerCase() === username.toLowerCase());
-
-                    if (matchedUserKey && customUsers[matchedUserKey].password === password) {
-                        let uData = customUsers[matchedUserKey];
-                        if (uData.system === expectedSystemType || 
-                            (expectedSystemType === 'royal' && (uData.system === 'pnr' || uData.system === 'accounts'))) {
-                            isValid = true;
-                            correctPin = uData.pin || '73';
-                        } else {
-                            errorMsg.innerText = "Access Denied for this portal!";
-                            return;
-                        }
-                    }
-
-                    if (!isValid) {
-                        try {
-                            if (username.includes('@') && window.firebaseAuth) {
-                                await window.firebaseAuth.signInWithEmailAndPassword(window.firebaseAuth.auth, username, password);
-                                isValid = true;
-                            }
-                        } catch (e) {}
-                    }
-
-                    if (!isValid) { 
-                        errorMsg.innerText = "Invalid credentials!"; 
-                        return; 
-                    }
-
-                    localStorage.setItem('LOGGED_IN_STAFF_NAME', username.toUpperCase());
-                    document.getElementById(systemName + 'CredentialsForm').style.display = 'none';
-                    document.getElementById(systemName + 'PinArea').style.display = 'block';
-
-                    generatePinGrid(systemName + 'PinGrid', correctPin, (pin) => {
-                        if(pin === correctPin) {
-                            window.location.href = './' + targetPage;
-                        } else {
-                            document.getElementById(systemName + 'PinErrorMsg').innerText = "Incorrect PIN!";
-                        }
-                    });
-                }
+                });
             };
         }
 

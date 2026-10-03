@@ -131,7 +131,7 @@
     <div class="form-container no-print">
         <div class="section-title">1. Invoice Details & Customer Info</div>
         <div class="folder-bar">
-            <div><strong>Cloud Status / Folder:</strong> <span id="currentFolderPath" style="color: #2563eb; font-family: monospace; font-weight: bold;">Connected & Active (Firebase)</span></div>
+            <div><strong>Cloud Status / Folder:</strong> <span id="currentFolderPath" style="color: #2563eb; font-family: monospace; font-weight: bold;">Realtime Connected (Firebase)</span></div>
             <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncInvoicesFromCloud()">Sync from Cloud</button>
         </div>
 
@@ -322,7 +322,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAE9rSoeTwCUgfrJ2QOlibuBClF2_M0hkw",
@@ -338,7 +338,7 @@
     try {
         const firebaseApp = initializeApp(firebaseConfig);
         const db = getFirestore(firebaseApp);
-        window.firebaseDB = { db, collection, addDoc, getDocs };
+        window.firebaseDB = { db, collection, addDoc, getDocs, onSnapshot, query, orderBy };
     } catch(e) {
         console.log("Firebase init notice:", e);
     }
@@ -372,6 +372,74 @@
     }
 
     let savedInvoicesList = JSON.parse(localStorage.getItem('ASTON_INVOICES_STORE')) || [];
+
+    // Realtime Listener Setup for Cloud Synchronization
+    function initRealtimeSync() {
+        if (!window.firebaseDB || !window.firebaseDB.db) {
+            setTimeout(initRealtimeSync, 1000);
+            return;
+        }
+        try {
+            const q = window.firebaseDB.query(
+                window.firebaseDB.collection(window.firebaseDB.db, "aston_invoices")
+            );
+            window.firebaseDB.onSnapshot(q, (snapshot) => {
+                let cloudInvoices = [];
+                snapshot.forEach((doc) => {
+                    cloudInvoices.push(doc.data());
+                });
+
+                if (cloudInvoices.length > 0) {
+                    // Sort descending by invoiceNo or creation time if desired
+                    cloudInvoices.sort((a, b) => (parseInt(b.invoiceNo || b.receiptNo || 0) - parseInt(a.invoiceNo || a.receiptNo || 0)));
+
+                    savedInvoicesList = cloudInvoices.map(item => ({
+                        receiptNo: item.invoiceNo || item.receiptNo,
+                        date: item.date || 'N/A',
+                        custName: item.clientName || item.custName,
+                        refNo: item.refNo,
+                        contactNo: item.contactNo || 'N/A',
+                        email: item.email || 'N/A',
+                        itemCost: item.itemCost || '0.000',
+                        vatRate: item.vatRate || '0.00',
+                        vatAmount: item.vatAmount || '0.000',
+                        paymentMethod: item.paymentMethod || 'Bank Transfer',
+                        grandTotal: item.totalAmount || item.grandTotal,
+                        remarks: item.remarks || 'N/A',
+                        issuedBy: item.issuedBy,
+                        isNonRefundable: item.isNonRefundable || false,
+                        stampSrc: item.stampSrc || '',
+                        sigSrc: item.sigSrc || ''
+                    }));
+                    
+                    localStorage.setItem('ASTON_INVOICES_STORE', JSON.stringify(savedInvoicesList));
+                    renderHistoryTable();
+
+                    // Automatically update counter to max receipt number + 1 if higher
+                    let maxRcp = 101;
+                    savedInvoicesList.forEach(inv => {
+                        let num = parseInt(inv.receiptNo);
+                        if (!isNaN(num) && num >= maxRcp) {
+                            maxRcp = num + 1;
+                        }
+                    });
+                    
+                    let currentCounter = parseInt(localStorage.getItem('ASTON_RECEIPT_COUNTER')) || 101;
+                    if (maxRcp > currentCounter) {
+                        localStorage.setItem('ASTON_RECEIPT_COUNTER', maxRcp);
+                        const receiptInput = document.getElementById('receiptCounter');
+                        if(receiptInput && receiptInput.hasAttribute('readonly')) {
+                            receiptInput.value = maxRcp;
+                        }
+                        const dispRcp = document.getElementById('dispReceiptNo');
+                        if(dispRcp) dispRcp.innerText = maxRcp;
+                    }
+                }
+            });
+        } catch (e) {
+            console.error("Realtime listener error:", e);
+        }
+    }
 
     async function syncInvoicesFromCloud() {
         if (!window.firebaseDB || !window.firebaseDB.db) {
@@ -436,6 +504,7 @@
 
         renderHistoryTable();
         updateCalculationsAndPreview();
+        initRealtimeSync();
 
         const updateSaveBtn = document.getElementById('updateSaveBtn');
         if(updateSaveBtn) updateSaveBtn.addEventListener('click', () => processInvoice('updateAndSave'));
@@ -584,21 +653,7 @@
                 sigSrc: document.getElementById('dispSig')?.src || ''
             };
 
-            savedInvoicesList.unshift(invoiceData);
-            localStorage.setItem('ASTON_INVOICES_STORE', JSON.stringify(savedInvoicesList));
-            renderHistoryTable();
-
-            let currentCounter = parseInt(document.getElementById('receiptCounter')?.value) || 101;
-            let nextCounter = currentCounter + 1;
-            localStorage.setItem('ASTON_RECEIPT_COUNTER', nextCounter);
-
-            const inputField = document.getElementById('receiptCounter');
-            if(inputField) {
-                inputField.value = nextCounter;
-                inputField.setAttribute('readonly', true);
-                inputField.style.backgroundColor = '#f8fafc';
-            }
-
+            // Save to Cloud Firebase immediately
             try {
                 if (window.firebaseDB && window.firebaseDB.db) {
                     await window.firebaseDB.addDoc(window.firebaseDB.collection(window.firebaseDB.db, "aston_invoices"), {
@@ -623,6 +678,21 @@
                 }
             } catch (e) {
                 console.error("Cloud sync error:", e);
+            }
+
+            savedInvoicesList.unshift(invoiceData);
+            localStorage.setItem('ASTON_INVOICES_STORE', JSON.stringify(savedInvoicesList));
+            renderHistoryTable();
+
+            let currentCounter = parseInt(document.getElementById('receiptCounter')?.value) || 101;
+            let nextCounter = currentCounter + 1;
+            localStorage.setItem('ASTON_RECEIPT_COUNTER', nextCounter);
+
+            const inputField = document.getElementById('receiptCounter');
+            if(inputField) {
+                inputField.value = nextCounter;
+                inputField.setAttribute('readonly', true);
+                inputField.style.backgroundColor = '#f8fafc';
             }
 
             alert('Invoice updated and saved successfully to Store & Cloud!');
