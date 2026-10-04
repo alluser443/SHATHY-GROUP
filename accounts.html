@@ -71,7 +71,7 @@
 
     <!-- Local Server Status Bar -->
     <div class="folder-bar no-print">
-        <div><strong>Local Server Status:</strong> <span id="currentFolderPath" style="color: #16a34a; font-family: monospace; font-weight: bold;">Connected to Tunnel Server</span></div>
+        <div><strong>Local Server Status:</strong> <span id="currentFolderPath" style="color: #16a34a; font-family: monospace; font-weight: bold;">Connected to Local Server</span></div>
         <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="fetchTransactions()">Refresh Data</button>
     </div>
 
@@ -138,7 +138,7 @@
 </div>
 
 <script>
-    const LOCAL_SERVER_URL = "https://thirty-buckets-build.loca.lt";
+    const LOCAL_SERVER_URL = "http://localhost:3000";
     const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
     const actionBtnContainer = document.getElementById('headerActionBtn');
     
@@ -231,7 +231,7 @@
         document.getElementById('sumOtherInc').innerText = sumOtherInc.toFixed(3) + ' OMR';
         document.getElementById('sumCarExp').innerText = sumCarExp.toFixed(3) + ' OMR';
         document.getElementById('sumTravel').innerText = sumTravel.toFixed(3) + ' OMR';
-        document.getElementById('sumOfficeExp').innerText = sumOfficeExp.toFixed(3) + ' OMR';
+        document.getElementById('sumOfficeExp').innerText = sumOffice.toFixed(3) + ' OMR';
         document.getElementById('sumFamilyExp').innerText = sumFamilyExp.toFixed(3) + ' OMR';
         document.getElementById('sumPersonalExp').innerText = sumPersonalExp.toFixed(3) + ' OMR';
 
@@ -243,7 +243,6 @@
         netEl.style.color = net >= 0 ? '#0369a1' : '#dc2626';
     }
 
-    // Local Server API Integration with Tunnel URL
     function fetchTransactions() {
         fetch(`${LOCAL_SERVER_URL}/api/accounts`)
             .then(res => res.json())
@@ -262,7 +261,6 @@
             });
     }
 
-    // Initial fetch
     fetchTransactions();
 
     document.getElementById('addTxBtn').onclick = () => {

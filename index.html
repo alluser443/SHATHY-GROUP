@@ -166,7 +166,7 @@
 
     <!-- Local Server Backend Integration -->
     <script>
-        const LOCAL_SERVER_URL = localStorage.getItem('TUNNEL_API_ENDPOINT') || "https://thirty-buckets-build.loca.lt";
+        const LOCAL_SERVER_URL = "http://localhost:3000";
 
         window.verifyLocalUser = async function(username, password, systemType) {
             try {
@@ -349,4 +349,3 @@
     </script>
 </body>
 </html>
-```[cite: 3]

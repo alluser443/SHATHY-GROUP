@@ -146,7 +146,7 @@
 </div>
 
 <script>
-    const LOCAL_SERVER_URL = "https://thirty-buckets-build.loca.lt";
+    const LOCAL_SERVER_URL = "http://localhost:3000";
     const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
     const actionBtnContainer = document.getElementById('headerActionBtn');
     
@@ -309,7 +309,7 @@
                     const diffHours = (limitTime - now) / (1000 * 60 * 60);
 
                     if (diffHours <= item.alertHours && diffHours > 0) {
-                        statusHTML = `<span style="color:#dc2626; font-weight:bold;">⚠️️ Expires in ${diffHours.toFixed(1)} hrs!<br><em>Action Required</em></span>`;
+                        statusHTML = `<span style="color:#dc2626; font-weight:bold;">⚠ Expires in ${diffHours.toFixed(1)} hrs!<br><em>Action Required</em></span>`;
                         isTriggered = true;
                         
                         const intervalMs = (item.intervalMins || 2) * 60 * 1000;
@@ -403,7 +403,6 @@
         }
     }
 
-    // Fetch data from Local Server API
     function fetchTrackers() {
         fetch(`${LOCAL_SERVER_URL}/api/pnr`)
             .then(res => res.json())
@@ -421,7 +420,6 @@
             });
     }
 
-    // Initial fetch
     fetchTrackers();
 
     window.updateStatus = function(id, newStatus) {

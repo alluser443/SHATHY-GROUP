@@ -113,8 +113,8 @@
     <div class="form-container no-print">
         <div class="section-title">1. Invoice Details & Passenger Info</div>
         <div class="folder-bar">
-            <div><strong>Tunnel Connection Status:</strong> <span id="tunnelStatusText" style="color: #16a34a; font-family: monospace; font-weight: bold;">Connected to Local Server via Tunnel</span></div>
-            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncWithLocalServer()">Sync Tunnel Data</button>
+            <div><strong>Local Server Status:</strong> <span id="tunnelStatusText" style="color: #16a34a; font-family: monospace; font-weight: bold;">Connected to Local Server</span></div>
+            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncWithLocalServer()">Sync Server Data</button>
         </div>
 
         <div class="form-grid">
@@ -158,7 +158,7 @@
         </div>
 
         <div class="btn-group" style="margin-top: 20px;">
-            <button class="btn btn-primary" id="updateSaveBtn">Update & Save to Local Server</button>
+            <button class="btn btn-primary" id="updateSaveBtn">Update & Save to Server</button>
             <button class="btn btn-secondary" id="printBtn">Print Customer Copy</button>
             <button class="btn btn-warning" id="resetBtn">Reset Voucher</button>
             <button class="btn btn-dark" id="toggleHistBtn">View History (<span id="histCount">0</span>)</button>
@@ -293,7 +293,7 @@
 </div>
 
 <script>
-    const TUNNEL_API_URL = localStorage.getItem('TUNNEL_API_ENDPOINT') || 'http://localhost:3000';
+    const LOCAL_SERVER_URL = "http://localhost:3000";
 
     let ADMIN_PASS = localStorage.getItem('ROYAL_RECEIPT_PIN') || '0473';
 
@@ -324,7 +324,7 @@
 
     async function syncWithLocalServer() {
         try {
-            const response = await fetch(`${TUNNEL_API_URL}/api/invoices`);
+            const response = await fetch(`${LOCAL_SERVER_URL}/api/invoices`);
             if (response.ok) {
                 const data = await response.json();
                 if (Array.isArray(data)) {
@@ -336,7 +336,7 @@
             }
             throw new Error('Failed to fetch from server');
         } catch (error) {
-            console.warn('Tunnel sync fallback to local storage:', error);
+            console.warn('Server sync fallback to local storage:', error);
         }
     }
 
@@ -515,13 +515,13 @@
             renderHistoryTable();
 
             try {
-                await fetch(`${TUNNEL_API_URL}/api/invoices`, {
+                await fetch(`${LOCAL_SERVER_URL}/api/invoices`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(invoiceData)
                 });
             } catch (e) {
-                console.warn('Tunnel post warning:', e);
+                console.warn('Server post warning:', e);
             }
 
             let currentCounter = parseInt(document.getElementById('receiptCounter')?.value) || 216;
@@ -535,7 +535,7 @@
                 inputField.style.backgroundColor = '#e2e8f0';
             }
 
-            alert('Invoice updated and saved successfully via Tunnel to Local Server!');
+            alert('Invoice updated and saved successfully to Local Server!');
         } else if (action === 'print') {
             window.print();
         }
@@ -607,11 +607,11 @@
             renderHistoryTable();
 
             try {
-                await fetch(`${TUNNEL_API_URL}/api/invoices/${targetInv.receiptNo}`, {
+                await fetch(`${LOCAL_SERVER_URL}/api/invoices/${targetInv.receiptNo}`, {
                     method: 'DELETE'
                 });
             } catch(e) {
-                console.warn('Tunnel delete warning:', e);
+                console.warn('Server delete warning:', e);
             }
 
             alert('Invoice deleted successfully!');
