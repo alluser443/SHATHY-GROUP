@@ -9,7 +9,7 @@
         body { 
             background: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(30, 58, 138, 0.65)), 
                         url('https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover; margin: 0; padding: 25px; color: #1e293b; min-height: 100vh;
+            background-size: cover; margin: 0; padding: 25px; color: #334155; min-height: 100vh;
         }
         .container { 
             max-width: 980px; margin: 0 auto; background: rgba(255, 255, 255, 0.98); 
@@ -28,13 +28,13 @@
         
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #334155; }
-        .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #fff; color: #0f172a; }
-        .form-group input[readonly] { background-color: #f8fafc; color: #64748b; cursor: not-allowed; }
+        .form-group label { font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #1e293b; }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #fff; color: #334155; font-weight: 400; }
+        .form-group input[readonly] { background-color: #f8fafc; color: #475569; cursor: not-allowed; font-weight: 600; }
         
         .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
         .checkbox-group input { width: 18px; height: 18px; cursor: pointer; accent-color: #1e3a8a; }
-        .checkbox-group label { font-weight: bold; font-size: 14px; color: #dc2626; cursor: pointer; margin-bottom: 0; }
+        .checkbox-group label { font-weight: 600; font-size: 14px; color: #dc2626; cursor: pointer; margin-bottom: 0; }
 
         .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 25px; flex-wrap: wrap; }
         .btn { padding: 11px 18px; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -52,39 +52,39 @@
         
         .non-refundable-stamp {
             position: absolute; top: 66%; left: 32%; transform: translate(-50%, -50%) rotate(-8deg);
-            border: 3px solid #dc2626; color: #dc2626; padding: 8px 18px; font-size: 17px; font-weight: 900;
+            border: 3px solid #dc2626; color: #dc2626; padding: 8px 18px; font-size: 17px; font-weight: 700;
             text-align: center; letter-spacing: 1.5px; text-transform: uppercase; pointer-events: none; opacity: 0.95; z-index: 10; display: none; background-color: rgba(255, 255, 255, 0.92);
         }
-        .non-refundable-stamp .ar-stamp { font-size: 13px; display: block; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; margin-top: 2px; }
+        .non-refundable-stamp .ar-stamp { font-size: 12px; display: block; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; margin-top: 2px; font-weight: normal; }
 
         .inv-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 18px; margin-bottom: 20px; }
         .logo-title-area { display: flex; align-items: center; gap: 15px; }
         .company-logo { width: 65px; height: auto; border-radius: 6px; object-fit: contain; background: #fff; padding: 3px; border: 1px solid #e2e8f0; }
-        .company-names h2 { margin: 0; color: #1e3a8a; font-size: 17px; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; font-weight: 700; }
-        .company-names h1 { margin: 4px 0 0 0; color: #1e293b; font-size: 18px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+        .company-names h2 { margin: 0; color: #1e3a8a; font-size: 16px; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; font-weight: 600; }
+        .company-names h1 { margin: 4px 0 0 0; color: #1e293b; font-size: 16px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
         
         .voucher-badge { background: #3b82f6; color: white; padding: 8px 18px; border-radius: 6px; text-align: center; box-shadow: 0 4px 10px rgba(59,130,246,0.25); }
-        .voucher-badge .ar { font-size: 14px; font-weight: bold; display: block; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; }
-        .voucher-badge .en { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+        .voucher-badge .ar { font-size: 13px; font-weight: 600; display: block; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; }
+        .voucher-badge .en { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; font-weight: 500; }
         
-        .inv-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 13px; background: #f8fafc; padding: 10px 15px; border-radius: 6px; border-left: 4px solid #3b82f6; color: #334155; }
-        .rcp-no { color: #dc2626; font-size: 18px; font-weight: 800; }
+        .inv-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 13px; font-weight: 500; background: #f8fafc; padding: 10px 15px; border-radius: 6px; border-left: 4px solid #3b82f6; color: #334155; }
+        .rcp-no { color: #dc2626; font-size: 16px; font-weight: 700; }
         
         .details-table, .pricing-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
-        .details-table td { padding: 9px 14px; background: #fafafa; border: 1px solid #e2e8f0; font-size: 13px; color: #1e293b; }
-        .details-table td.label { font-weight: 600; color: #475569; width: 25%; background: #f8fafc; font-size: 12px; }
+        .details-table td { padding: 8px 12px; background: #fafafa; border: 1px solid #cbd5e1; font-size: 13px; color: #334155; font-weight: 400; }
+        .details-table td.label { font-weight: 600; color: #1e293b; width: 25%; background: #f1f5f9; font-size: 12px; }
         
-        .pricing-table th, .pricing-table td { padding: 11px 15px; border: 1px solid #e2e8f0; font-size: 13px; color: #1e293b; }
-        .pricing-table th { background: #f1f5f9; text-align: left; color: #334155; font-weight: 600; }
+        .pricing-table th, .pricing-table td { padding: 10px 14px; border: 1px solid #cbd5e1; font-size: 13px; color: #334155; font-weight: 400; }
+        .pricing-table th { background: #e2e8f0; text-align: left; color: #1e293b; font-weight: 700; }
         .pricing-table .amount-col { text-align: right; width: 30%; }
 
-        .footer-notes { margin-top: 22px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px dashed #cbd5e1; padding-top: 12px; }
-        .footer-notes p { margin: 3px 0; font-weight: 500; }
+        .footer-notes { margin-top: 22px; text-align: center; font-size: 11px; color: #475569; font-weight: 400; border-top: 1px dashed #cbd5e1; padding-top: 12px; }
+        .footer-notes p { margin: 3px 0; }
 
-        .stamp-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; font-size: 12px; font-weight: bold; color: #334155; padding: 0 10px; }
-        .stamp-signature-wrapper { position: relative; width: 190px; height: 95px; border-bottom: 2px dashed #94a3b8; display: flex; justify-content: center; align-items: center; background: #fcfcfc; border-radius: 4px; }
-        .preview-img { max-width: 100%; max-height: 90px; object-fit: contain; position: absolute; }
-        .stamp-img { opacity: 0.88; z-index: 1; }
+        .stamp-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 35px; font-size: 12px; font-weight: 500; color: #334155; padding: 0 10px; }
+        .stamp-signature-wrapper { position: relative; width: 180px; height: 90px; border-bottom: 2px dashed #94a3b8; display: flex; justify-content: center; align-items: center; background: #fcfcfc; border-radius: 4px; }
+        .preview-img { max-width: 100%; max-height: 85px; object-fit: contain; position: absolute; }
+        .stamp-img { opacity: 0.85; z-index: 1; }
         .sig-img { z-index: 2; }
         
         .history-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
@@ -104,12 +104,12 @@
         .view-modal-body { background: white; padding: 20px; border-radius: 8px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }
 
         .invoice-footer {
-            margin-top: 30px; background: #1e293b; color: #fff; padding: 14px 18px; border-radius: 6px;
-            display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; line-height: 1.6;
+            margin-top: 25px; background: #0f172a; color: #cbd5e1; padding: 12px 16px; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 400; line-height: 1.5;
         }
         .footer-left-area { display: flex; align-items: center; gap: 12px; }
-        .footer-logo { width: 45px; height: auto; background: #fff; padding: 2px; border-radius: 4px; object-fit: contain; }
-        .footer-right { text-align: right; direction: rtl; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; }
+        .footer-logo { width: 42px; height: auto; background: #fff; padding: 2px; border-radius: 4px; object-fit: contain; }
+        .footer-right { text-align: right; direction: rtl; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; font-size: 11px; }
 
         @media print {
             body { background: white; padding: 0; }
@@ -124,15 +124,15 @@
 
 <div class="container">
     <div class="header-flex no-print">
-        <h2 class="app-title">✨ Aston Al Asariya - Tax Invoice System</h2>
+        <h2 class="app-title">Tax Invoice System - Aston Al Asariya</h2>
         <div id="headerActionBtn"></div>
     </div>
     
     <div class="form-container no-print">
         <div class="section-title">1. Invoice Details & Customer Info</div>
         <div class="folder-bar">
-            <div><strong>Cloud Status / Folder:</strong> <span id="currentFolderPath" style="color: #2563eb; font-family: monospace; font-weight: bold;">Realtime Connected (Firebase)</span></div>
-            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncInvoicesFromCloud()">Sync from Cloud</button>
+            <div><strong>Tunnel Connection Status:</strong> <span id="tunnelStatusText" style="color: #16a34a; font-family: monospace; font-weight: bold;">Connected to Local Server via Tunnel</span></div>
+            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncWithLocalServer()">Sync Tunnel Data</button>
         </div>
 
         <div class="form-grid">
@@ -153,7 +153,7 @@
             <div class="form-group"><label>Description / Remarks:</label><input type="text" id="remarks" placeholder="ENTER DETAILS HERE"></div>
             <div class="form-group">
                 <label>Issued By:</label>
-                <input type="text" id="issuedBy" readonly style="font-weight: bold; color: #1e3a8a;">
+                <input type="text" id="issuedBy" readonly style="font-weight: 600; color: #1e3a8a;">
             </div>
             <div class="form-group">
                 <label style="display: flex; justify-content: space-between; align-items: center;">
@@ -176,7 +176,7 @@
         </div>
 
         <div class="btn-group" style="margin-top: 25px;">
-            <button class="btn btn-primary" id="updateSaveBtn">Update & Save Store</button>
+            <button class="btn btn-primary" id="updateSaveBtn">Update & Save to Local Server</button>
             <button class="btn btn-secondary" id="printBtn">Print Customer Copy</button>
             <button class="btn btn-warning" id="resetBtn">Reset Invoice</button>
             <button class="btn btn-dark" id="toggleHistBtn">View History (<span id="histCount">0</span>)</button>
@@ -278,8 +278,8 @@
                     <tr><td id="dispDescText">Trade & Service Charges / رسوم الخدمة التجارية</td><td class="amount-col" id="dispItemCost">0.000</td></tr>
                     <tr><td>VAT at <span id="dispVatRate">0.00</span>% / ضريبة القيمة المضافة</td><td class="amount-col" id="dispVatAmount">0.000</td></tr>
                     <tr>
-                        <td><strong>Collection Mode / طريقة الدفع:</strong><br><span id="dispPaymentMethodText" style="font-size: 12px; color: #2563eb;">Bank Transfer: 0.000 OMR</span></td>
-                        <td class="amount-col" style="vertical-align: middle;"><strong>Grand Total / الإجمالي:</strong><br><span id="dispGrandTotal" style="font-size: 16px; color: #1e3a8a; font-weight: bold;">0.000 OMR</span></td>
+                        <td><strong>Collection Mode / طريقة الدفع:</strong><br><span id="dispPaymentMethodText" style="font-size: 12px; color: #1e3a8a; font-weight: 600;">Bank Transfer: 0.000 OMR</span></td>
+                        <td class="amount-col" style="vertical-align: middle;"><strong>Grand Total / الإجمالي:</strong><br><span id="dispGrandTotal" style="font-size: 15px; color: #1e3a8a; font-weight: 700;">0.000 OMR</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -295,8 +295,8 @@
                     <div class="stamp-signature-wrapper"><img id="dispStamp" class="preview-img stamp-img" src="" style="display:none;" alt="Stamp"></div>
                 </div>
                 <div style="text-align: right;">
-                    <div style="margin-bottom: 4px; font-size: 11px; color: #475569;">Issued By: <span id="dispIssuedBy" style="font-weight: bold; color: #1e3a8a;">--</span> | Salalah, Oman</div>
-                    <div style="font-size: 11px; color: #475569; margin-bottom: 4px;">Receiver's Sign / توقيع المستلم</div>
+                    <div style="margin-bottom: 4px; font-size: 11px; color: #334155;">Issued By: <span id="dispIssuedBy" style="font-weight: 600; color: #1e3a8a;">--</span> | Salalah, Oman</div>
+                    <div style="font-size: 11px; color: #334155; margin-bottom: 4px;">Receiver's Sign / توقيع المستلم</div>
                     <div class="stamp-signature-wrapper"><img id="dispSig" class="preview-img sig-img" src="" style="display:none;" alt="Signature"></div>
                 </div>
             </div>
@@ -320,31 +320,10 @@
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyAE9rSoeTwCUgfrJ2QOlibuBClF2_M0hkw",
-        authDomain: "royal-holidays.firebaseapp.com",
-        databaseURL: "https://royal-holidays-default-rtdb.firebaseio.com",
-        projectId: "royal-holidays",
-        storageBucket: "royal-holidays.appspot.com",
-        messagingSenderId: "470071653456",
-        appId: "1:470071653456:web:b10ca6a1e8c8dc9ac50d55",
-        measurementId: "G-VZCFTN70GJ"
-    };
-
-    try {
-        const firebaseApp = initializeApp(firebaseConfig);
-        const db = getFirestore(firebaseApp);
-        window.firebaseDB = { db, collection, addDoc, getDocs, onSnapshot, query, orderBy };
-    } catch(e) {
-        console.log("Firebase init notice:", e);
-    }
-</script>
-
 <script>
+    // Tunnel Endpoint Configuration
+    const TUNNEL_API_URL = localStorage.getItem('TUNNEL_API_ENDPOINT') || 'http://localhost:3000';
+
     let ADMIN_PASS = localStorage.getItem('ASTON_RECEIPT_PIN') || '0473';
 
     let loggedInUser = localStorage.getItem('LOGGED_IN_STAFF_NAME') || localStorage.getItem('currentUser') || 'NUR AHAMMED';
@@ -352,7 +331,6 @@
     let isAdminStored = localStorage.getItem('isAdminLoggedIn') === 'true';
 
     const actionBtnContainer = document.getElementById('headerActionBtn');
-    
     const isAdmin = isAdminStored || (userRole && userRole.toLowerCase() === 'admin');
 
     if (isAdmin) {
@@ -373,113 +351,22 @@
 
     let savedInvoicesList = JSON.parse(localStorage.getItem('ASTON_INVOICES_STORE')) || [];
 
-    // Realtime Listener Setup for Cloud Synchronization
-    function initRealtimeSync() {
-        if (!window.firebaseDB || !window.firebaseDB.db) {
-            setTimeout(initRealtimeSync, 1000);
-            return;
-        }
+    async function syncWithLocalServer() {
         try {
-            const q = window.firebaseDB.query(
-                window.firebaseDB.collection(window.firebaseDB.db, "aston_invoices")
-            );
-            window.firebaseDB.onSnapshot(q, (snapshot) => {
-                let cloudInvoices = [];
-                snapshot.forEach((doc) => {
-                    cloudInvoices.push(doc.data());
-                });
-
-                if (cloudInvoices.length > 0) {
-                    // Sort descending by invoiceNo or creation time if desired
-                    cloudInvoices.sort((a, b) => (parseInt(b.invoiceNo || b.receiptNo || 0) - parseInt(a.invoiceNo || a.receiptNo || 0)));
-
-                    savedInvoicesList = cloudInvoices.map(item => ({
-                        receiptNo: item.invoiceNo || item.receiptNo,
-                        date: item.date || 'N/A',
-                        custName: item.clientName || item.custName,
-                        refNo: item.refNo,
-                        contactNo: item.contactNo || 'N/A',
-                        email: item.email || 'N/A',
-                        itemCost: item.itemCost || '0.000',
-                        vatRate: item.vatRate || '0.00',
-                        vatAmount: item.vatAmount || '0.000',
-                        paymentMethod: item.paymentMethod || 'Bank Transfer',
-                        grandTotal: item.totalAmount || item.grandTotal,
-                        remarks: item.remarks || 'N/A',
-                        issuedBy: item.issuedBy,
-                        isNonRefundable: item.isNonRefundable || false,
-                        stampSrc: item.stampSrc || '',
-                        sigSrc: item.sigSrc || ''
-                    }));
-                    
+            const response = await fetch(`${TUNNEL_API_URL}/api/invoices`);
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    savedInvoicesList = data;
                     localStorage.setItem('ASTON_INVOICES_STORE', JSON.stringify(savedInvoicesList));
                     renderHistoryTable();
-
-                    // Automatically update counter to max receipt number + 1 if higher
-                    let maxRcp = 101;
-                    savedInvoicesList.forEach(inv => {
-                        let num = parseInt(inv.receiptNo);
-                        if (!isNaN(num) && num >= maxRcp) {
-                            maxRcp = num + 1;
-                        }
-                    });
-                    
-                    let currentCounter = parseInt(localStorage.getItem('ASTON_RECEIPT_COUNTER')) || 101;
-                    if (maxRcp > currentCounter) {
-                        localStorage.setItem('ASTON_RECEIPT_COUNTER', maxRcp);
-                        const receiptInput = document.getElementById('receiptCounter');
-                        if(receiptInput && receiptInput.hasAttribute('readonly')) {
-                            receiptInput.value = maxRcp;
-                        }
-                        const dispRcp = document.getElementById('dispReceiptNo');
-                        if(dispRcp) dispRcp.innerText = maxRcp;
-                    }
+                    return; // পপআপ রিমুভ করা হয়েছে
                 }
-            });
-        } catch (e) {
-            console.error("Realtime listener error:", e);
-        }
-    }
-
-    async function syncInvoicesFromCloud() {
-        if (!window.firebaseDB || !window.firebaseDB.db) {
-            alert('Firebase not connected!');
-            return;
-        }
-        try {
-            const querySnapshot = await window.firebaseDB.getDocs(window.firebaseDB.collection(window.firebaseDB.db, "aston_invoices"));
-            let cloudInvoices = [];
-            querySnapshot.forEach((doc) => {
-                cloudInvoices.push(doc.data());
-            });
-            if (cloudInvoices.length > 0) {
-                savedInvoicesList = cloudInvoices.map(item => ({
-                    receiptNo: item.invoiceNo || item.receiptNo,
-                    date: item.date || 'N/A',
-                    custName: item.clientName || item.custName,
-                    refNo: item.refNo,
-                    contactNo: item.contactNo || 'N/A',
-                    email: item.email || 'N/A',
-                    itemCost: item.itemCost || '0.000',
-                    vatRate: item.vatRate || '0.00',
-                    vatAmount: item.vatAmount || '0.000',
-                    paymentMethod: item.paymentMethod || 'Bank Transfer',
-                    grandTotal: item.totalAmount || item.grandTotal,
-                    remarks: item.remarks || 'N/A',
-                    issuedBy: item.issuedBy,
-                    isNonRefundable: item.isNonRefundable || false,
-                    stampSrc: item.stampSrc || '',
-                    sigSrc: item.sigSrc || ''
-                }));
-                localStorage.setItem('ASTON_INVOICES_STORE', JSON.stringify(savedInvoicesList));
-                renderHistoryTable();
-                alert('Successfully synced invoices from Cloud Firebase server!');
-            } else {
-                alert('No invoices found in the cloud server.');
             }
-        } catch (e) {
-            console.error("Sync error:", e);
-            alert('Failed to sync from cloud.');
+            throw new Error('Failed to fetch from server');
+        } catch (error) {
+            console.warn('Tunnel sync fallback to local storage:', error);
+            // লোকাল স্ট্যাটাস ভেরিফিকেশনের পপআপটি এখানে রিমুভ করা হয়েছে যাতে বিরক্ত না করে
         }
     }
 
@@ -504,7 +391,6 @@
 
         renderHistoryTable();
         updateCalculationsAndPreview();
-        initRealtimeSync();
 
         const updateSaveBtn = document.getElementById('updateSaveBtn');
         if(updateSaveBtn) updateSaveBtn.addEventListener('click', () => processInvoice('updateAndSave'));
@@ -563,6 +449,9 @@
                 el.addEventListener('change', updateCalculationsAndPreview);
             }
         });
+
+        // Initial background sync check (Without popups)
+        syncWithLocalServer();
     };
 
     function previewImage(input, targetId) {
@@ -653,36 +542,19 @@
                 sigSrc: document.getElementById('dispSig')?.src || ''
             };
 
-            // Save to Cloud Firebase immediately
-            try {
-                if (window.firebaseDB && window.firebaseDB.db) {
-                    await window.firebaseDB.addDoc(window.firebaseDB.collection(window.firebaseDB.db, "aston_invoices"), {
-                        invoiceNo: receiptNo,
-                        date: dateStr,
-                        clientName: invoiceData.custName,
-                        refNo: invoiceData.refNo,
-                        contactNo: invoiceData.contactNo,
-                        email: invoiceData.email,
-                        itemCost: invoiceData.itemCost,
-                        vatRate: invoiceData.vatRate,
-                        vatAmount: invoiceData.vatAmount,
-                        paymentMethod: invoiceData.paymentMethod,
-                        totalAmount: invoiceData.grandTotal,
-                        remarks: invoiceData.remarks,
-                        issuedBy: currentStaff,
-                        isNonRefundable: invoiceData.isNonRefundable,
-                        stampSrc: invoiceData.stampSrc,
-                        sigSrc: invoiceData.sigSrc,
-                        createdAt: new Date().toISOString()
-                    });
-                }
-            } catch (e) {
-                console.error("Cloud sync error:", e);
-            }
-
             savedInvoicesList.unshift(invoiceData);
             localStorage.setItem('ASTON_INVOICES_STORE', JSON.stringify(savedInvoicesList));
             renderHistoryTable();
+
+            try {
+                await fetch(`${TUNNEL_API_URL}/api/invoices`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(invoiceData)
+                });
+            } catch (e) {
+                console.warn('Tunnel post warning:', e);
+            }
 
             let currentCounter = parseInt(document.getElementById('receiptCounter')?.value) || 101;
             let nextCounter = currentCounter + 1;
@@ -695,7 +567,7 @@
                 inputField.style.backgroundColor = '#f8fafc';
             }
 
-            alert('Invoice updated and saved successfully to Store & Cloud!');
+            alert('Invoice updated and saved successfully via Tunnel to Local Server!');
         } else if (action === 'print') {
             window.print();
         }
@@ -759,11 +631,21 @@
         });
     }
 
-    function deleteSingleInvoice(index) {
+    async function deleteSingleInvoice(index) {
         if (confirm("Are you sure you want to delete this specific invoice?")) {
+            const targetInv = savedInvoicesList[index];
             savedInvoicesList.splice(index, 1);
             localStorage.setItem('ASTON_INVOICES_STORE', JSON.stringify(savedInvoicesList));
             renderHistoryTable();
+
+            try {
+                await fetch(`${TUNNEL_API_URL}/api/invoices/${targetInv.receiptNo}`, {
+                    method: 'DELETE'
+                });
+            } catch(e) {
+                console.warn('Tunnel delete warning:', e);
+            }
+
             alert('Invoice deleted successfully!');
         }
     }
@@ -778,7 +660,7 @@
         modalContainer.innerHTML = `
             <div class="invoice-card" style="margin: 0 auto;">
                 <img src="logo.png" alt="Watermark" class="watermark-logo" onerror="this.style.display='none'">
-                <div style="position: absolute; top: 66%; left: 32%; transform: translate(-50%, -50%) rotate(-8deg); border: 3px solid #dc2626; color: #dc2626; padding: 8px 18px; font-size: 17px; font-weight: 900; text-align: center; letter-spacing: 1.5px; text-transform: uppercase; display: ${inv.isNonRefundable ? 'block' : 'none'}; background-color: rgba(255, 255, 255, 0.92);">NON-REFUNDABLE<span style="font-size: 13px; display: block; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; margin-top: 2px;">غير قابل للاسترداد</span></div>
+                <div style="position: absolute; top: 66%; left: 32%; transform: translate(-50%, -50%) rotate(-8deg); border: 3px solid #dc2626; color: #dc2626; padding: 8px 18px; font-size: 17px; font-weight: 700; text-align: center; letter-spacing: 1.5px; text-transform: uppercase; display: ${inv.isNonRefundable ? 'block' : 'none'}; background-color: rgba(255, 255, 255, 0.92);">NON-REFUNDABLE<span style="font-size: 12px; display: block; font-family: 'Traditional Arabic', 'Amiri', Tahoma, sans-serif; margin-top: 2px; font-weight: normal;">غير قابل للاسترداد</span></div>
 
                 <div class="inv-header">
                     <div class="logo-title-area">
@@ -821,8 +703,8 @@
                         <tr><td>Trade & Service Charges / رسوم الخدمة التجارية</td><td class="amount-col">${inv.itemCost}</td></tr>
                         <tr><td>VAT at <span>${inv.vatRate}</span>% / ضريبة القيمة المضافة</td><td class="amount-col">${inv.vatAmount}</td></tr>
                         <tr>
-                            <td><strong>Collection Mode / طريقة الدفع:</strong><br><span style="font-size: 12px; color: #2563eb;">${inv.paymentMethod}: ${inv.grandTotal}</span></td>
-                            <td class="amount-col" style="vertical-align: middle;"><strong>Grand Total / الإجمالي:</strong><br><span style="font-size: 16px; color: #1e3a8a; font-weight: bold;">${inv.grandTotal}</span></td>
+                            <td><strong>Collection Mode / طريقة الدفع:</strong><br><span style="font-size: 12px; color: #1e3a8a; font-weight: 600;">${inv.paymentMethod}: ${inv.grandTotal}</span></td>
+                            <td class="amount-col" style="vertical-align: middle;"><strong>Grand Total / الإجمالي:</strong><br><span style="font-size: 15px; color: #1e3a8a; font-weight: 700;">${inv.grandTotal}</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -838,8 +720,8 @@
                         <div class="stamp-signature-wrapper"><img src="${inv.stampSrc}" class="preview-img stamp-img" style="display: ${inv.stampSrc ? 'block' : 'none'};" alt="Stamp"></div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="margin-bottom: 4px; font-size: 11px; color: #475569;">Issued By: <span>${inv.issuedBy}</span> | Salalah, Oman</div>
-                        <div style="font-size: 11px; color: #475569; margin-bottom: 4px;">Receiver's Sign / توقيع المستلم</div>
+                        <div style="margin-bottom: 4px; font-size: 11px; color: #334155;">Issued By: <span>${inv.issuedBy}</span> | Salalah, Oman</div>
+                        <div style="font-size: 11px; color: #334155; margin-bottom: 4px;">Receiver's Sign / توقيع المستلم</div>
                         <div class="stamp-signature-wrapper"><img src="${inv.sigSrc}" class="preview-img sig-img" style="display: ${inv.sigSrc ? 'block' : 'none'};" alt="Signature"></div>
                     </div>
                 </div>

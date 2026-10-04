@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Unified Admin Dashboard - Shathy Group</title>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { 
@@ -255,16 +253,11 @@
         </div>
     </div>
 
+    <!-- Local Server Backend Integration (No Firebase) -->
     <script>
-        const firebaseConfig = {
-            databaseURL: "https://royal-invi-default-rtdb.firebaseio.com/"
-        };
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
+        const LOCAL_SERVER_URL = "https://thirty-buckets-build.loca.lt";
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             const overlay = document.getElementById('welcomeOverlay');
             if (sessionStorage.getItem('admin_welcome_shown')) {
                 if (overlay) overlay.style.display = 'none';
@@ -272,39 +265,44 @@
                 sessionStorage.setItem('admin_welcome_shown', 'true');
             }
 
-            // Real-time synchronization for users, admin credentials, and pins from Firebase
-            db.ref('CUSTOM_PORTAL_USERS').on('value', (snapshot) => {
-                const firebaseUsers = snapshot.val() || {};
-                localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(firebaseUsers));
-                loadStaffDirectories();
-            });
-
-            db.ref('ADMIN_CREDENTIALS').on('value', (snapshot) => {
-                const creds = snapshot.val();
-                if (creds) {
-                    localStorage.setItem('ADMIN_CREDENTIALS', JSON.stringify(creds));
-                    loadStaffDirectories();
-                }
-            });
-
-            db.ref('ROYAL_RECEIPT_PIN').on('value', (snapshot) => {
-                const pin = snapshot.val();
-                if (pin) {
-                    localStorage.setItem('ROYAL_RECEIPT_PIN', pin);
-                    let royalInput = document.getElementById('royalReceiptPinInput');
-                    if (royalInput) royalInput.value = pin;
-                }
-            });
-
-            db.ref('ASTON_RECEIPT_PIN').on('value', (snapshot) => {
-                const pin = snapshot.val();
-                if (pin) {
-                    localStorage.setItem('ASTON_RECEIPT_PIN', pin);
-                    let astonInput = document.getElementById('astonReceiptPinInput');
-                    if (astonInput) astonInput.value = pin;
-                }
-            });
+            await syncDataFromLocalServer();
         });
+
+        async function syncDataFromLocalServer() {
+            try {
+                const response = await fetch(`${LOCAL_SERVER_URL}/api/get-all-data`);
+                if (response.ok) {
+                    const serverData = await response.json();
+                    if (serverData.CUSTOM_PORTAL_USERS) {
+                        localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(serverData.CUSTOM_PORTAL_USERS));
+                    }
+                    if (serverData.ADMIN_CREDENTIALS) {
+                        localStorage.setItem('ADMIN_CREDENTIALS', JSON.stringify(serverData.ADMIN_CREDENTIALS));
+                    }
+                    if (serverData.ROYAL_RECEIPT_PIN) {
+                        localStorage.setItem('ROYAL_RECEIPT_PIN', serverData.ROYAL_RECEIPT_PIN);
+                    }
+                    if (serverData.ASTON_RECEIPT_PIN) {
+                        localStorage.setItem('ASTON_RECEIPT_PIN', serverData.ASTON_RECEIPT_PIN);
+                    }
+                }
+            } catch (err) {
+                console.log("Local server fetch error, falling back to localStorage:", err);
+            }
+            loadStaffDirectories();
+        }
+
+        async function sendDataToLocalServer(action, payload) {
+            try {
+                await fetch(`${LOCAL_SERVER_URL}/api/save-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, ...payload })
+                });
+            } catch (err) {
+                console.log("Local server sync error:", err);
+            }
+        }
 
         document.getElementById('logoutBtn').onclick = () => {
             localStorage.removeItem('isAdminLoggedIn');
@@ -341,8 +339,10 @@
 
             let royalPin = localStorage.getItem('ROYAL_RECEIPT_PIN') || 'ROYAL_PIN';
             let astonPin = localStorage.getItem('ASTON_RECEIPT_PIN') || 'ASTON_PIN';
-            document.getElementById('royalReceiptPinInput').value = royalPin;
-            document.getElementById('astonReceiptPinInput').value = astonPin;
+            let royalInput = document.getElementById('royalReceiptPinInput');
+            let astonInput = document.getElementById('astonReceiptPinInput');
+            if (royalInput) royalInput.value = royalPin;
+            if (astonInput) astonInput.value = astonPin;
         }
 
         function updateReceiptPin(systemType) {
@@ -355,7 +355,7 @@
                     return;
                 }
                 localStorage.setItem('ROYAL_RECEIPT_PIN', newPin);
-                db.ref('ROYAL_RECEIPT_PIN').set(newPin);
+                sendDataToLocalServer('update_pin', { systemType: 'royal', pin: newPin });
                 msgEl.className = "success";
                 msgEl.innerText = "Royal PIN updated successfully!";
                 setTimeout(() => { msgEl.innerText = ''; }, 3000);
@@ -368,7 +368,7 @@
                     return;
                 }
                 localStorage.setItem('ASTON_RECEIPT_PIN', newPin);
-                db.ref('ASTON_RECEIPT_PIN').set(newPin);
+                sendDataToLocalServer('update_pin', { systemType: 'aston', pin: newPin });
                 msgEl.className = "success";
                 msgEl.innerText = "Aston PIN updated successfully!";
                 setTimeout(() => { msgEl.innerText = ''; }, 3000);
@@ -441,7 +441,7 @@
                 customUsers[username].pin = pin;
                 
                 localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(customUsers));
-                db.ref('CUSTOM_PORTAL_USERS').set(customUsers);
+                sendDataToLocalServer('save_users', { users: customUsers });
 
                 closeEditModal();
                 loadStaffDirectories();
@@ -464,7 +464,7 @@
             customUsers[username] = { password, name: fullName, pin: quickPin, system: targetCompany };
 
             localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(customUsers));
-            db.ref('CUSTOM_PORTAL_USERS').set(customUsers);
+            sendDataToLocalServer('save_users', { users: customUsers });
 
             document.getElementById('msg').innerText = "Account created and synced successfully!";
             setTimeout(() => document.getElementById('msg').innerText = '', 3000);
@@ -483,7 +483,7 @@
                 delete customUsers[username];
                 
                 localStorage.setItem('CUSTOM_PORTAL_USERS', JSON.stringify(customUsers));
-                db.ref('CUSTOM_PORTAL_USERS').set(customUsers);
+                sendDataToLocalServer('save_users', { users: customUsers });
 
                 loadStaffDirectories();
             }
@@ -516,7 +516,7 @@
             if (newPin) adminCreds.pin = newPin;
 
             localStorage.setItem('ADMIN_CREDENTIALS', JSON.stringify(adminCreds));
-            db.ref('ADMIN_CREDENTIALS').set(adminCreds);
+            sendDataToLocalServer('save_admin', { admin: adminCreds });
 
             msgEl.className = "success";
             msgEl.innerText = "Admin security updated successfully!";

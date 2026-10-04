@@ -164,57 +164,45 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    <!-- Local Server Backend Integration -->
+    <script>
+        const LOCAL_SERVER_URL = localStorage.getItem('TUNNEL_API_ENDPOINT') || "https://thirty-buckets-build.loca.lt";
 
-        const firebaseConfig = {
-            databaseURL: "https://royal-inbi-default-rtdb.firebaseio.com/"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        window.firebaseDB = { db, ref, get, set, child };
-
-        // Global functions to verify users against Firebase Realtime Database
-        window.verifyFirebaseUser = async function(username, password, systemType) {
+        window.verifyLocalUser = async function(username, password, systemType) {
             try {
-                const dbRef = ref(db);
-                // Check in system users or admin node
-                const snapshot = await get(child(dbRef, 'portal_users/' + username.replace(/[.#$\/\[\]]/g, "_")));
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.password === password) {
-                        return { success: true, pin: userData.pin || '73', system: userData.system };
-                    }
+                const response = await fetch(`${LOCAL_SERVER_URL}/api/save-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'verify', username, password, systemType })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    return { success: true, pin: data.pin || '73', system: data.system };
                 }
                 
-                // Default Master Admin fallback check
                 if (systemType === 'admin' && username === 'admin' && password === '0473') {
                     return { success: true, pin: '73', system: 'admin' };
                 }
 
                 return { success: false };
             } catch (err) {
-                console.error("Firebase Auth Error:", err);
+                console.error("Local Server Auth Error:", err);
+                if (systemType === 'admin' && username === 'admin' && password === '0473') {
+                    return { success: true, pin: '73', system: 'admin' };
+                }
                 return { success: false, error: err.message };
             }
         };
 
-        window.saveFirebaseUserRemember = async function(username, password, systemType) {
+        window.saveLocalUserRemember = async function(username, password, systemType) {
             try {
-                const cleanKey = username.replace(/[.#$\/\[\]]/g, "_");
-                const userRef = ref(db, 'portal_users/' + cleanKey);
-                await set(userRef, {
-                    username: username,
-                    password: password,
-                    system: systemType,
-                    pin: '73'
+                await fetch(`${LOCAL_SERVER_URL}/api/save-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'save', username, password, systemType, pin: '73' })
                 });
             } catch (e) {
-                console.log("Firebase sync save error:", e);
+                console.log("Local Server sync save error:", e);
             }
         };
     </script>
@@ -277,16 +265,14 @@
                 let isValid = false;
                 let correctPin = '73';
 
-                // First verify from Firebase Database live
-                if (window.verifyFirebaseUser) {
-                    let res = await window.verifyFirebaseUser(username, password, expectedSystemType || 'admin');
+                if (window.verifyLocalUser) {
+                    let res = await window.verifyLocalUser(username, password, expectedSystemType || 'admin');
                     if (res.success) {
                         isValid = true;
                         correctPin = res.pin;
                     }
                 }
 
-                // Fallback to local storage credentials if offline or pre-configured
                 let adminCreds = JSON.parse(localStorage.getItem('ADMIN_CREDENTIALS')) || { username: 'admin', password: '0473', pin: '73' };
                 let customUsers = JSON.parse(localStorage.getItem('CUSTOM_PORTAL_USERS')) || {};
 
@@ -311,7 +297,6 @@
                     return;
                 }
 
-                // Remember me handling (Save to LocalStorage and Firebase Realtime Database)
                 if (rememberMe) {
                     let savedAccounts = JSON.parse(localStorage.getItem(systemName + '_SAVED_ACCOUNTS')) || [];
                     let existingIndex = savedAccounts.findIndex(acc => acc.username === username);
@@ -322,8 +307,8 @@
                     }
                     localStorage.setItem(systemName + '_SAVED_ACCOUNTS', JSON.stringify(savedAccounts));
 
-                    if (window.saveFirebaseUserRemember) {
-                        window.saveFirebaseUserRemember(username, password, expectedSystemType || 'admin');
+                    if (window.saveLocalUserRemember) {
+                        window.saveLocalUserRemember(username, password, expectedSystemType || 'admin');
                     }
                 }
 
@@ -364,3 +349,4 @@
     </script>
 </body>
 </html>
+```[cite: 3]

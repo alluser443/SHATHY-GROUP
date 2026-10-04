@@ -145,18 +145,8 @@
     </div>
 </div>
 
-<!-- Firebase SDKs -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-    const firebaseConfig = {
-        databaseURL: "https://royal-inbi-default-rtdb.firebaseio.com/"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
+<script>
+    const LOCAL_SERVER_URL = "https://thirty-buckets-build.loca.lt";
     const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
     const actionBtnContainer = document.getElementById('headerActionBtn');
     
@@ -280,18 +270,22 @@
             newItem.soundConfig = soundConfig;
         }
 
-        const trackersRef = ref(db, 'pnr_trackers');
-        push(trackersRef, newItem)
-            .then(() => {
-                document.getElementById('paxName').value = '';
-                document.getElementById('pnrNo').value = '';
-                document.getElementById('passportInfo').value = '';
-                document.getElementById('contactNo').value = '';
-                alert('Tracker saved successfully to Firebase!');
-            })
-            .catch((error) => {
-                alert('Error saving data: ' + error.message);
-            });
+        fetch(`${LOCAL_SERVER_URL}/api/pnr`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newItem)
+        })
+        .then(res => res.json())
+        .then(() => {
+            document.getElementById('paxName').value = '';
+            document.getElementById('pnrNo').value = '';
+            document.getElementById('passportInfo').value = '';
+            document.getElementById('contactNo').value = '';
+            fetchTrackers();
+        })
+        .catch((error) => {
+            alert('Error saving data: ' + error.message);
+        });
     };
 
     function renderTrackers() {
@@ -315,7 +309,7 @@
                     const diffHours = (limitTime - now) / (1000 * 60 * 60);
 
                     if (diffHours <= item.alertHours && diffHours > 0) {
-                        statusHTML = `<span style="color:#dc2626; font-weight:bold;">⚠️ Expires in ${diffHours.toFixed(1)} hrs!<br><em>Action Required</em></span>`;
+                        statusHTML = `<span style="color:#dc2626; font-weight:bold;">⚠️️ Expires in ${diffHours.toFixed(1)} hrs!<br><em>Action Required</em></span>`;
                         isTriggered = true;
                         
                         const intervalMs = (item.intervalMins || 2) * 60 * 1000;
@@ -409,31 +403,53 @@
         }
     }
 
-    // Real-time listener from Firebase
-    const trackersRef = ref(db, 'pnr_trackers');
-    onValue(trackersRef, (snapshot) => {
-        const data = snapshot.val();
-        trackers = [];
-        if (data) {
-            Object.keys(data).forEach(key => {
-                trackers.push({ id: key, ...data[key] });
+    // Fetch data from Local Server API
+    function fetchTrackers() {
+        fetch(`${LOCAL_SERVER_URL}/api/pnr`)
+            .then(res => res.json())
+            .then(data => {
+                trackers = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        trackers.push({ id: key, ...data[key] });
+                    });
+                }
+                renderTrackers();
+            })
+            .catch(err => {
+                console.error('Error fetching from local server:', err);
             });
-        }
-        renderTrackers();
-    });
+    }
+
+    // Initial fetch
+    fetchTrackers();
 
     window.updateStatus = function(id, newStatus) {
-        const singleRef = ref(db, 'pnr_trackers/' + id);
-        update(singleRef, { status: newStatus }).catch((error) => {
+        fetch(`${LOCAL_SERVER_URL}/api/pnr/` + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(res => res.json())
+        .then(() => {
+            fetchTrackers();
+        })
+        .catch((error) => {
             alert('Error updating status: ' + error.message);
         });
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     };
 
     window.deleteTracker = function(id) {
-        if(confirm('Are you sure you want to delete this record from Firebase?')) {
-            const singleRef = ref(db, 'pnr_trackers/' + id);
-            remove(singleRef).catch((error) => {
+        if(confirm('Are you sure you want to delete this record?')) {
+            fetch(`${LOCAL_SERVER_URL}/api/pnr/` + id, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(() => {
+                fetchTrackers();
+            })
+            .catch((error) => {
                 alert('Error deleting record: ' + error.message);
             });
         }

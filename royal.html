@@ -113,8 +113,8 @@
     <div class="form-container no-print">
         <div class="section-title">1. Invoice Details & Passenger Info</div>
         <div class="folder-bar">
-            <div><strong>Cloud Status:</strong> <span style="color: #16a34a; font-weight: bold;">Connected & Live Sync Active</span></div>
-            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncInvoicesFromCloud()">Force Sync</button>
+            <div><strong>Tunnel Connection Status:</strong> <span id="tunnelStatusText" style="color: #16a34a; font-family: monospace; font-weight: bold;">Connected to Local Server via Tunnel</span></div>
+            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="syncWithLocalServer()">Sync Tunnel Data</button>
         </div>
 
         <div class="form-grid">
@@ -158,7 +158,7 @@
         </div>
 
         <div class="btn-group" style="margin-top: 20px;">
-            <button class="btn btn-primary" id="updateSaveBtn">Update & Save Store</button>
+            <button class="btn btn-primary" id="updateSaveBtn">Update & Save to Local Server</button>
             <button class="btn btn-secondary" id="printBtn">Print Customer Copy</button>
             <button class="btn btn-warning" id="resetBtn">Reset Voucher</button>
             <button class="btn btn-dark" id="toggleHistBtn">View History (<span id="histCount">0</span>)</button>
@@ -292,31 +292,9 @@
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyAE9rSoeTwCUgfrJ2QOlibuBClF2_M0hkw",
-        authDomain: "royal-holidays.firebaseapp.com",
-        databaseURL: "https://royal-holidays-default-rtdb.firebaseio.com",
-        projectId: "royal-holidays",
-        storageBucket: "royal-holidays.appspot.com",
-        messagingSenderId: "470071653456",
-        appId: "1:470071653456:web:b10ca6a1e8c8dc9ac50d55",
-        measurementId: "G-VZCFTN70GJ"
-    };
-
-    try {
-        const firebaseApp = initializeApp(firebaseConfig);
-        const db = getFirestore(firebaseApp);
-        window.firebaseDB = { db, collection, addDoc, getDocs, onSnapshot };
-    } catch(e) {
-        console.log("Firebase init notice:", e);
-    }
-</script>
-
 <script>
+    const TUNNEL_API_URL = localStorage.getItem('TUNNEL_API_ENDPOINT') || 'http://localhost:3000';
+
     let ADMIN_PASS = localStorage.getItem('ROYAL_RECEIPT_PIN') || '0473';
 
     let loggedInUser = localStorage.getItem('LOGGED_IN_STAFF_NAME') || localStorage.getItem('currentUser') || 'NUR AHAMMED';
@@ -344,85 +322,21 @@
 
     let savedInvoicesList = JSON.parse(localStorage.getItem('ROYAL_INVOICES_STORE')) || [];
 
-    // Real-time Cloud Firestore Listener (Live Sync)
-    function initRealtimeSync() {
-        if (!window.firebaseDB || !window.firebaseDB.db) {
-            setTimeout(initRealtimeSync, 1000);
-            return;
-        }
+    async function syncWithLocalServer() {
         try {
-            window.firebaseDB.onSnapshot(window.firebaseDB.collection(window.firebaseDB.db, "invoices"), (snapshot) => {
-                let cloudInvoices = [];
-                snapshot.forEach((doc) => {
-                    cloudInvoices.push(doc.data());
-                });
-                if (cloudInvoices.length > 0) {
-                    savedInvoicesList = cloudInvoices.map(item => ({
-                        receiptNo: item.invoiceNo || item.receiptNo,
-                        date: item.date || 'N/A',
-                        paxName: item.clientName || item.paxName,
-                        pnrNo: item.pnrNo,
-                        contactNo: item.contactNo || 'N/A',
-                        email: item.email || 'N/A',
-                        ticketCost: item.ticketCost || '0.000',
-                        vatRate: item.vatRate || '0.00',
-                        vatAmount: item.vatAmount || '0.000',
-                        paymentMethod: item.paymentMethod || 'Bank Transfer',
-                        grandTotal: item.totalAmount || item.grandTotal,
-                        remarks: item.remarks || 'N/A',
-                        issuedBy: item.issuedBy,
-                        isNonRefundable: item.isNonRefundable || false,
-                        stampSrc: item.stampSrc || '',
-                        sigSrc: item.sigSrc || ''
-                    }));
+            const response = await fetch(`${TUNNEL_API_URL}/api/invoices`);
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    savedInvoicesList = data;
                     localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
                     renderHistoryTable();
+                    return;
                 }
-            });
-        } catch (e) {
-            console.error("Realtime sync setup error:", e);
-        }
-    }
-
-    async function syncInvoicesFromCloud() {
-        if (!window.firebaseDB || !window.firebaseDB.db) {
-            alert('Firebase not connected!');
-            return;
-        }
-        try {
-            const querySnapshot = await window.firebaseDB.getDocs(window.firebaseDB.collection(window.firebaseDB.db, "invoices"));
-            let cloudInvoices = [];
-            querySnapshot.forEach((doc) => {
-                cloudInvoices.push(doc.data());
-            });
-            if (cloudInvoices.length > 0) {
-                savedInvoicesList = cloudInvoices.map(item => ({
-                    receiptNo: item.invoiceNo || item.receiptNo,
-                    date: item.date || 'N/A',
-                    paxName: item.clientName || item.paxName,
-                    pnrNo: item.pnrNo,
-                    contactNo: item.contactNo || 'N/A',
-                    email: item.email || 'N/A',
-                    ticketCost: item.ticketCost || '0.000',
-                    vatRate: item.vatRate || '0.00',
-                    vatAmount: item.vatAmount || '0.000',
-                    paymentMethod: item.paymentMethod || 'Bank Transfer',
-                    grandTotal: item.totalAmount || item.grandTotal,
-                    remarks: item.remarks || 'N/A',
-                    issuedBy: item.issuedBy,
-                    isNonRefundable: item.isNonRefundable || false,
-                    stampSrc: item.stampSrc || '',
-                    sigSrc: item.sigSrc || ''
-                }));
-                localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
-                renderHistoryTable();
-                alert('Successfully synced invoices from Cloud Firebase server!');
-            } else {
-                alert('No invoices found in the cloud server.');
             }
-        } catch (e) {
-            console.error("Sync error:", e);
-            alert('Failed to sync from cloud.');
+            throw new Error('Failed to fetch from server');
+        } catch (error) {
+            console.warn('Tunnel sync fallback to local storage:', error);
         }
     }
 
@@ -447,7 +361,7 @@
 
         renderHistoryTable();
         updateCalculationsAndPreview();
-        initRealtimeSync(); // রিয়েল-টাইম লাইভ সিঙ্ক চালু করা হলো
+        syncWithLocalServer();
 
         const updateSaveBtn = document.getElementById('updateSaveBtn');
         if(updateSaveBtn) updateSaveBtn.addEventListener('click', () => processInvoice('updateAndSave'));
@@ -596,35 +510,19 @@
                 sigSrc: document.getElementById('dispSig')?.src || ''
             };
 
-            try {
-                if (window.firebaseDB && window.firebaseDB.db) {
-                    await window.firebaseDB.addDoc(window.firebaseDB.collection(window.firebaseDB.db, "invoices"), {
-                        invoiceNo: receiptNo,
-                        date: dateStr,
-                        clientName: invoiceData.paxName,
-                        pnrNo: invoiceData.pnrNo,
-                        contactNo: invoiceData.contactNo,
-                        email: invoiceData.email,
-                        ticketCost: invoiceData.ticketCost,
-                        vatRate: invoiceData.vatRate,
-                        vatAmount: invoiceData.vatAmount,
-                        paymentMethod: invoiceData.paymentMethod,
-                        totalAmount: invoiceData.grandTotal,
-                        remarks: invoiceData.remarks,
-                        issuedBy: currentStaff,
-                        isNonRefundable: invoiceData.isNonRefundable,
-                        stampSrc: invoiceData.stampSrc,
-                        sigSrc: invoiceData.sigSrc,
-                        createdAt: new Date().toISOString()
-                    });
-                }
-            } catch (e) {
-                console.error("Cloud sync error:", e);
-            }
-
             savedInvoicesList.unshift(invoiceData);
             localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
             renderHistoryTable();
+
+            try {
+                await fetch(`${TUNNEL_API_URL}/api/invoices`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(invoiceData)
+                });
+            } catch (e) {
+                console.warn('Tunnel post warning:', e);
+            }
 
             let currentCounter = parseInt(document.getElementById('receiptCounter')?.value) || 216;
             let nextCounter = currentCounter + 1;
@@ -637,7 +535,7 @@
                 inputField.style.backgroundColor = '#e2e8f0';
             }
 
-            alert('Invoice updated and saved successfully to Store & Cloud!');
+            alert('Invoice updated and saved successfully via Tunnel to Local Server!');
         } else if (action === 'print') {
             window.print();
         }
@@ -701,11 +599,21 @@
         });
     }
 
-    function deleteSingleInvoice(index) {
+    async function deleteSingleInvoice(index) {
         if (confirm("Are you sure you want to delete this specific invoice?")) {
+            const targetInv = savedInvoicesList[index];
             savedInvoicesList.splice(index, 1);
             localStorage.setItem('ROYAL_INVOICES_STORE', JSON.stringify(savedInvoicesList));
             renderHistoryTable();
+
+            try {
+                await fetch(`${TUNNEL_API_URL}/api/invoices/${targetInv.receiptNo}`, {
+                    method: 'DELETE'
+                });
+            } catch(e) {
+                console.warn('Tunnel delete warning:', e);
+            }
+
             alert('Invoice deleted successfully!');
         }
     }
